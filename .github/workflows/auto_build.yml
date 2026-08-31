@@ -1,0 +1,57 @@
+name: Auto Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Install pnpm
+        run: curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=next-12 sh -
+
+      # Linux 构建为 CGO 构建；wails3 alpha2.119 默认使用 GTK4 + WebKitGTK 6.0（gtk3 为 opt-in build tag）
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev libsoup-3.0-dev libx11-dev pkg-config
+
+      # 安装与 go.mod 一致版本的 wails3 CLI
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v3)
+
+      - name: Build Linux Binary
+        run: |
+          wails3 task linux:build
+          mv bin/aba-explorer bin/aba-explorer-linux-amd64
+        
+
+      # Windows 构建 CGO_ENABLED=0，可直接在 Linux 上交叉编译
+      - name: Build Windows Binary
+        run: wails3 task windows:build
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-amd64
+          path: bin/aba-explorer-linux-amd64
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-amd64
+          path: bin/aba-explorer.exe
