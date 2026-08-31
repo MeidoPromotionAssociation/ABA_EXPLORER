@@ -1,0 +1,63 @@
+# This file contains the configuration for this project.
+# When you update `info` or `fileAssociations`, run `wails3 task common:update:build-assets` to update the assets.
+# Note that this will overwrite any changes you have made to the assets.
+version: '3'
+
+# This information is used to generate the build assets.
+info:
+  companyName: "MEIDO Promotion Association" # The name of the company
+  productName: "ABA EXPLORER" # The name of the application
+  productIdentifier: "Github.MeidoPromotionAssociation.ABA_EXPLORER" # The unique product identifier
+  description: "Browser, unpacker and packer for KCES ABA containers" # The application description
+  copyright: "(c) 2026, MeidoPromotionAssociation under BSD 3-Clause License" # Copyright text
+  comments: "OHHH YEEEEEEEE" # Comments
+  # 版本号统一由 internal/app.go 的 CurrentVersion 提供，构建时经 -productversion 传入，
+  # 这里必须留空：wails3 的 UpdateBuildAssets 只在 -productversion 等于其默认值 "0.1.0" 时
+  # 才回落到本字段，一旦 CurrentVersion 恰好是 v0.1.0，非空的本字段就会反过来把它覆盖掉
+  version: "" # The application version
+# Dev mode configuration
+dev_mode:
+  root_path: .
+  log_level: warn
+  debounce: 1000
+  ignore:
+    dir:
+      - .git
+      - node_modules
+      - frontend
+      - bin
+    file:
+      - .gitignore
+      - .gitkeep
+      - "*_test.go"
+    watched_extension:
+      - "*.go"
+      - "*.js" # Watch for changes to JS/TS files included using the //wails:include directive.
+      - "*.ts" # The frontend directory will be excluded entirely by the setting above.
+    git_ignore: true
+  executes:
+    - cmd: wails3 build DEV=true
+      type: blocking
+    - cmd: wails3 task common:dev:frontend
+      type: background
+    - cmd: wails3 task run DEV=true
+      type: primary
+
+# File Associations
+# More information at: https://v3.wails.io/noit/done/yet
+fileAssociations:
+  - ext: aba
+    name: KCES Unity Bundle
+    description: KCES Unity Bundle File
+    iconName: aba
+    role: Editor
+  - ext: ct
+    name: KCES catalog
+    description: KCES catalog File
+    iconName: ct
+    role: Editor
+
+
+# Other data
+other:
+  - name: My Other Data

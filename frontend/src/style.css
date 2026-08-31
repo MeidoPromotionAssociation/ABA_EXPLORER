@@ -1,0 +1,91 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue",
+    "Noto Sans SC", "Noto Sans JP", "Noto Sans KR", sans-serif;
+}
+
+#root {
+    height: 100vh;
+}
+
+/* 拖入文件时 Wails 运行时会给命中的拖放目标加上 file-drop-target-active 类 */
+html.file-drop-target-active {
+    box-shadow: inset 0 0 0 3px #389E0D;
+}
+
+/* 虚拟表的等宽列内容（PathID、哈希、偏移）用等宽字体对齐 */
+.mono {
+    font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 文本资源预览：保留原始换行与缩进，允许横向滚动 */
+.text-preview {
+    margin: 0;
+    font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre;
+    overflow: auto;
+}
+
+/*
+ * antd Tabs 默认不会把内容区拉满父容器，而虚拟表需要一个确定高度的滚动容器才能滚动。
+ * antd v6 把内容区的 class 从 content-holder / content / tabpane 改成了
+ * body-holder / body / content，两套都写上以免升级或降级时布局塌陷。
+ * body 与 content 两层同时用 Tabs 的 styles 语义属性设置（更稳），
+ * 但 body-holder 那层没有语义入口，只能靠 class 选择器。
+ */
+.fill-tabs {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fill-tabs > .ant-tabs-body-holder,
+.fill-tabs > .ant-tabs-content-holder {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.fill-tabs > .ant-tabs-body-holder > .ant-tabs-body,
+.fill-tabs > .ant-tabs-content-holder > .ant-tabs-content {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.fill-tabs .ant-tabs-body > .ant-tabs-content,
+.fill-tabs .ant-tabs-tabpane {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+/* 纹理预览：棋盘底衬让透明区域看得出来，图片按原始比例缩放进容器 */
+.image-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    background-image:
+        linear-gradient(45deg, rgba(128, 128, 128, 0.28) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(128, 128, 128, 0.28) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(128, 128, 128, 0.28) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(128, 128, 128, 0.28) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
