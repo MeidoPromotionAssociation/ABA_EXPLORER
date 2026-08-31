@@ -6,6 +6,105 @@
 
 ---
 
+## English
+
+An ABA container browser for [KCES](https://kces.jp/) and KCES2, used to inspect the internal structure of `.aba` files, unpack and pack them, and convert the extracted assets into common formats.
+
+It is a sibling project of [KCES MOD EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR): KCES MOD EDITOR handles editing of individual formats, while this tool handles packing and unpacking the containers themselves.
+
+Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/MeidoSerialization) serialization library, built with Wails v3 + React 19 + Ant Design 6 + Golang.
+
+### Features
+
+- **Container browsing**: UnityFS header, block directory metadata, data blocks, directory entries, and the header and external references of every SerializedFile
+- **Object table**: PathID, type, name, size, offset and AssetBundle load name of every Unity object in the container, filterable by type and source
+- **Content table browsing**: the catalog of `.ct` files (category flags, package type, priority, hash), the extension table and virtual files, extractable individually or all at once
+- **Unpacking**: extract into a pure asset directory without metadata, preview images or external stream files, with output organized into directories by Unity type
+- **Packing**: pack a pure asset directory back into an ABA fixed at Unity 2022.3.35f1, generate the matching `.ct` at the same time, and show the in-game loading warnings reported by the packer
+- **Preview**: Texture2D and Sprite are decoded directly into images, text assets are shown as UTF-8
+- **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF/GLB, AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting
+- **Hand off to the editor**: unpacked formats that have an editing page, such as `.menuassets`, can be opened in [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) through the `kces-mod-editor://` protocol via a button or a double click. Please install that software first
+- Drag and drop, opening through file associations, the `Ctrl+O` shortcut, and dark mode following the system
+- Full multi-language support. If you would like to add a language, please contribute through Issues or Pull Requests.
+
+### Supported files
+
+| Description                                   | Formats                                                                                                                   |
+|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| Unpacking and packing Unity Bundle containers | `.aba` `.asset_bg` `.asset_scene`                                                                                         |
+| Viewing and generating content tables         | `.ct`                                                                                                                     |
+| Conversion between unpacked asset formats     | Unpacked output and KCES native formats (`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes`, etc.)  |
+
+For structured editing of individual formats such as `.menuassets`, please use [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR).
+
+### Dependencies
+
+This application requires the following software to run:
+
+- Microsoft Edge WebView2
+  - This application is built with Wails, which relies on Microsoft Edge WebView2 to render pages, so WebView2 needs to be installed.
+  - If you use Windows 11, it is usually already installed on your system.
+  - If you use another system and do not have WebView2 installed, the application should prompt you to install it on startup.
+    Alternatively, you can install it from the official website: [https://developer.microsoft.com/en-us/microsoft-edge/webview2](https://developer.microsoft.com/en-us/microsoft-edge/webview2)
+  - What is Microsoft Edge
+    WebView2? [https://learn.microsoft.com/en-us/microsoft-edge/webview2/](https://learn.microsoft.com/en-us/microsoft-edge/webview2/)
+- ImageMagick
+  - Using the .tex format and image processing related features requires ImageMagick, in order to support as many image formats as possible. If you do not use .tex editing, you may choose not to install it.
+  - Please install it from the official website: [https://imagemagick.org/download](https://imagemagick.org/download)
+  - Find `ImageMagick-<version>-Q16-HDRI-x64-dll.exe` on the download page, download and install it, and make sure to check
+    `Add application directory to your system path` during installation.
+  - Alternatively, run `winget install ImageMagick.Q16-HDRI` in your terminal to install it.
+  - The version used for testing is `ImageMagick-7.1.2-30-Q16-HDRI-x64-dll.exe`. If you run into problems, please try this version.
+  - After installation, run `magick -version` in a terminal to check the version number. If a version number is shown, the installation succeeded.
+  - ImageMagick® is a free and open-source software suite for editing and manipulating digital images.
+
+### Privacy
+
+This application does not collect any personal information, and does not upload any information to any server.
+
+The only outgoing network request is for checking updates, and it only calls the GitHub API. You can also turn the update check feature off.
+
+### Download
+
+By downloading this software, you accept and agree to abide by the [Disclaimer](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER?tab=readme-ov-file#disclaimer)
+
+Please download from Github
+Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases)
+
+- If you want to install the editor into your system and automatically associate file types, use `aba-explorer-amd64-installer.exe`
+  - After file types are associated, different files will show different icons. See [here](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build) to preview the icons
+- If you do not want to install it, use `aba-explorer.exe`
+- If you are on Linux, use `aba-explorer_linux_amd64`
+
+### See also our other repositories
+
+- [COM3D2 MOD EDITOR](https://github.com/MeidoPromotionAssociation/COM3D2_MOD_EDITOR)
+- [KCES MOD EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR)
+- [ABA EXPLORER](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER)
+- [MeidoSerialization](https://github.com/MeidoPromotionAssociation/MeidoSerialization)
+- [COM3D2 Simple MOD Guide (Chinese)](https://github.com/MeidoPromotionAssociation/COM3D2_Simple_MOD_Guide_Chinese)
+- [Just Another Translator for COM3D2 (JAT)](https://github.com/MeidoPromotionAssociation/COM3D2.JustAnotherTranslator.Plugin)
+- [90135's COM3D2 Guide (Chinese)](https://github.com/90135/COM3D2_GUIDE_CHINESE)
+- [90135's COM3D2 Scripts Collection](https://github.com/90135/COM3D2_Scripts_901)
+- [90135's COM3D2 Tools](https://github.com/90135/COM3D2_Tools_901)
+
+<br>
+
+| Screenshot                | Screenshot                | Screenshot                | Screenshot                |
+|---------------------------|---------------------------|---------------------------|---------------------------|
+| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
+
+
+<br>
+<br>
+<br>
+
+---
+
+<br>
+<br>
+<br>
+
 ## 简体中文
 
 [KCES](https://kces.jp/) 以及 KCES2 的 ABA 容器浏览器，用于查看 `.aba` 内部结构、解包与打包，并把提取出的资源转换为通用格式
@@ -104,104 +203,6 @@
 <br>
 <br>
 
-## English
-
-An ABA container browser for [KCES](https://kces.jp/) and KCES2, used to inspect the internal structure of `.aba` files, unpack and pack them, and convert the extracted assets into common formats.
-
-It is a sibling project of [KCES MOD EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR): KCES MOD EDITOR handles editing of individual formats, while this tool handles packing and unpacking the containers themselves.
-
-Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/MeidoSerialization) serialization library, built with Wails v3 + React 19 + Ant Design 6 + Golang.
-
-### Features
-
-- **Container browsing**: UnityFS header, block directory metadata, data blocks, directory entries, and the header and external references of every SerializedFile
-- **Object table**: PathID, type, name, size, offset and AssetBundle load name of every Unity object in the container, filterable by type and source
-- **Content table browsing**: the catalog of `.ct` files (category flags, package type, priority, hash), the extension table and virtual files, extractable individually or all at once
-- **Unpacking**: extract into a pure asset directory without metadata, preview images or external stream files, with output organized into directories by Unity type
-- **Packing**: pack a pure asset directory back into an ABA fixed at Unity 2022.3.35f1, generate the matching `.ct` at the same time, and show the in-game loading warnings reported by the packer
-- **Preview**: Texture2D and Sprite are decoded directly into images, text assets are shown as UTF-8
-- **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF/GLB, AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting
-- **Hand off to the editor**: unpacked formats that have an editing page, such as `.menuassets`, can be opened in [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) through the `kces-mod-editor://` protocol via a button or a double click. Please install that software first
-- Drag and drop, opening through file associations, the `Ctrl+O` shortcut, and dark mode following the system
-- Full multi-language support. If you would like to add a language, please contribute through Issues or Pull Requests.
-
-### Supported files
-
-| Description                                   | Formats                                                                                                                   |
-|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| Unpacking and packing Unity Bundle containers | `.aba` `.asset_bg` `.asset_scene`                                                                                         |
-| Viewing and generating content tables         | `.ct`                                                                                                                     |
-| Conversion between unpacked asset formats     | Unpacked output and KCES native formats (`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes`, etc.)  |
-
-For structured editing of individual formats such as `.menuassets`, please use [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR).
-
-### Dependencies
-
-This application requires the following software to run:
-
-- Microsoft Edge WebView2
-  - This application is built with Wails, which relies on Microsoft Edge WebView2 to render pages, so WebView2 needs to be installed.
-  - If you use Windows 11, it is usually already installed on your system.
-  - If you use another system and do not have WebView2 installed, the application should prompt you to install it on startup.
-    Alternatively, you can install it from the official website: [https://developer.microsoft.com/en-us/microsoft-edge/webview2](https://developer.microsoft.com/en-us/microsoft-edge/webview2)
-  - What is Microsoft Edge
-    WebView2? [https://learn.microsoft.com/en-us/microsoft-edge/webview2/](https://learn.microsoft.com/en-us/microsoft-edge/webview2/)
-- ImageMagick
-  - Using the .tex format and image processing related features requires ImageMagick, in order to support as many image formats as possible. If you do not use .tex editing, you may choose not to install it.
-  - Please install it from the official website: [https://imagemagick.org/download](https://imagemagick.org/download)
-  - Find `ImageMagick-<version>-Q16-HDRI-x64-dll.exe` on the download page, download and install it, and make sure to check
-    `Add application directory to your system path` during installation.
-  - Alternatively, run `winget install ImageMagick.Q16-HDRI` in your terminal to install it.
-  - The version used for testing is `ImageMagick-7.1.2-30-Q16-HDRI-x64-dll.exe`. If you run into problems, please try this version.
-  - After installation, run `magick -version` in a terminal to check the version number. If a version number is shown, the installation succeeded.
-  - ImageMagick® is a free and open-source software suite for editing and manipulating digital images.
-
-### Privacy
-
-This application does not collect any personal information, and does not upload any information to any server.
-
-The only outgoing network request is for checking updates, and it only calls the GitHub API. You can also turn the update check feature off.
-
-### Download
-
-By downloading this software, you accept and agree to abide by the [Disclaimer](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER?tab=readme-ov-file#disclaimer)
-
-Please download from Github
-Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases)
-
-- If you want to install the editor into your system and automatically associate file types, use `aba-explorer-amd64-installer.exe`
-    - After file types are associated, different files will show different icons. See [here](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build) to preview the icons
-- If you do not want to install it, use `aba-explorer.exe`
-- If you are on Linux, use `aba-explorer_linux_amd64`
-
-### See also our other repositories
-
-- [COM3D2 MOD EDITOR](https://github.com/MeidoPromotionAssociation/COM3D2_MOD_EDITOR)
-- [KCES MOD EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR)
-- [ABA EXPLORER](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER)
-- [MeidoSerialization](https://github.com/MeidoPromotionAssociation/MeidoSerialization)
-- [COM3D2 Simple MOD Guide (Chinese)](https://github.com/MeidoPromotionAssociation/COM3D2_Simple_MOD_Guide_Chinese)
-- [Just Another Translator for COM3D2 (JAT)](https://github.com/MeidoPromotionAssociation/COM3D2.JustAnotherTranslator.Plugin)
-- [90135's COM3D2 Guide (Chinese)](https://github.com/90135/COM3D2_GUIDE_CHINESE)
-- [90135's COM3D2 Scripts Collection](https://github.com/90135/COM3D2_Scripts_901)
-- [90135's COM3D2 Tools](https://github.com/90135/COM3D2_Tools_901)
-
-<br>
-
-| Screenshot                | Screenshot                | Screenshot                | Screenshot                |
-|---------------------------|---------------------------|---------------------------|---------------------------|
-| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
-
-
-<br>
-<br>
-<br>
-
----
-
-<br>
-<br>
-<br>
 
 ## 日本語
 
