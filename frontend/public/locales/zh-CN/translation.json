@@ -18,6 +18,10 @@
     "json_files": "JSON 文件",
     "file_exists": "文件已存在，是否覆盖？"
   },
+  "VirtualTable": {
+    "resize_column": "调整列宽：{{name}}",
+    "resize_hint": "拖动调整列宽，双击恢复默认宽度"
+  },
   "NavBar": {
     "home": "首页",
     "container": "容器",

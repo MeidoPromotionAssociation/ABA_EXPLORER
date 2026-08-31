@@ -18,6 +18,10 @@
     "json_files": "JSON 파일",
     "file_exists": "파일이 이미 있습니다. 덮어쓸까요?"
   },
+  "VirtualTable": {
+    "resize_column": "열 너비 조정: {{name}}",
+    "resize_hint": "드래그하여 열 너비를 조정하고, 두 번 클릭하면 기본 너비로 돌아갑니다"
+  },
   "NavBar": {
     "home": "홈",
     "container": "컨테이너",

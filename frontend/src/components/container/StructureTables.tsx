@@ -7,6 +7,7 @@ import type {
     AbaDirectory,
 } from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import {formatBytes, formatHex, formatNumber, percent} from "../../utils/format";
+import {BlockTableWidthsKey, DirectoryTableWidthsKey} from "../../utils/LocalStorageKeys";
 
 /** compressionColor 给压缩方式一个稳定的配色，未压缩用默认灰 */
 function compressionColor(compression: string): string | undefined {
@@ -98,6 +99,7 @@ export const BlockTable: React.FC<{ blocks: AbaBlock[] }> = ({blocks}) => {
             columns={columns}
             rowKey={(row) => String(row.index)}
             defaultSort={{key: "index", order: "asc"}}
+            widthStorageKey={BlockTableWidthsKey}
             emptyText={t("StructureTables.no_blocks")}
         />
     );
@@ -175,6 +177,7 @@ export const DirectoryTable: React.FC<{ directories: AbaDirectory[] }> = ({direc
             columns={columns}
             rowKey={(row) => String(row.index)}
             defaultSort={{key: "name", order: "asc"}}
+            widthStorageKey={DirectoryTableWidthsKey}
             emptyText={t("StructureTables.no_directories")}
         />
     );

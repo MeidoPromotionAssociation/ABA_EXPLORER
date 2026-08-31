@@ -24,6 +24,46 @@ html.file-drop-target-active {
     font-variant-numeric: tabular-nums;
 }
 
+/*
+ * 虚拟表列宽拖拽手柄，压在表头单元格右边缘的内边距上，不会遮住标题文字与排序箭头。
+ * 平时就显出一条淡分隔线，指明这里能拖；指针悬停、键盘聚焦或正在拖动时加粗并换成主题色。
+ * 两个颜色都由表头内联样式给成 antd token，跟随换色与暗色主题。
+ */
+.vt-resize-handle {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
+    width: 6px;
+    height: 100%;
+    z-index: 1;
+    cursor: col-resize;
+    /* 触屏上按住拖动时不要连带滚动页面 */
+    touch-action: none;
+    user-select: none;
+}
+
+.vt-resize-handle:focus {
+    outline: none;
+}
+
+.vt-resize-handle::after {
+    content: "";
+    position: absolute;
+    /* 贯穿整个表头高度，和表头底边框接上才看得出是列的分界 */
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: 1px;
+    background: var(--vt-divider);
+    transition: width 0.15s, background-color 0.15s;
+}
+
+.vt-resize-handle:hover::after,
+.vt-resize-handle:focus-visible::after,
+.vt-resize-handle[data-resizing="true"]::after {
+    width: 2px;
+    background: currentColor;
+}
+
 /* 文本资源预览：保留原始换行与缩进，允许横向滚动 */
 .text-preview {
     margin: 0;

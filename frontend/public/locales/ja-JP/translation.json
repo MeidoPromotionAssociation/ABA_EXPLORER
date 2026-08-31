@@ -18,6 +18,10 @@
     "json_files": "JSON ファイル",
     "file_exists": "ファイルが既に存在します。上書きしますか？"
   },
+  "VirtualTable": {
+    "resize_column": "列幅を変更：{{name}}",
+    "resize_hint": "ドラッグで列幅を変更、ダブルクリックで既定の幅に戻します"
+  },
   "NavBar": {
     "home": "ホーム",
     "container": "コンテナ",

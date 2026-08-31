@@ -18,6 +18,10 @@
     "json_files": "JSON files",
     "file_exists": "The file already exists. Overwrite it?"
   },
+  "VirtualTable": {
+    "resize_column": "Resize column: {{name}}",
+    "resize_hint": "Drag to resize, double-click to restore the default width"
+  },
   "NavBar": {
     "home": "Home",
     "container": "Container",

@@ -6,6 +6,7 @@ import {useDebouncedValue} from "../../hooks/useDebouncedValue";
 import {toBigInt} from "../../utils/bigint";
 import type {CtCatalogItem} from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import {formatNumber} from "../../utils/format";
+import {CatalogItemTableWidthsKey} from "../../utils/LocalStorageKeys";
 
 const {Text} = Typography;
 
@@ -91,6 +92,7 @@ const CatalogItemTable: React.FC<CatalogItemTableProps> = ({items, resourceFileN
                     columns={columns}
                     rowKey={(row, index) => `${row.hash}:${index}`}
                     defaultSort={{key: "name", order: "asc"}}
+                    widthStorageKey={CatalogItemTableWidthsKey}
                     emptyText={t("CatalogItemTable.empty")}
                 />
             </div>

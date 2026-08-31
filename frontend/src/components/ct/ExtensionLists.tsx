@@ -4,6 +4,7 @@ import {useTranslation} from "react-i18next";
 import VirtualTable, {VirtualColumn} from "../common/VirtualTable";
 import {useDebouncedValue} from "../../hooks/useDebouncedValue";
 import {toBigInt} from "../../utils/bigint";
+import {ExtensionListWidthsKey} from "../../utils/LocalStorageKeys";
 import type {
     CtExtensionName,
     CtExtensionNameList,
@@ -89,6 +90,7 @@ const ExtensionLists: React.FC<{ lists: CtExtensionNameList[] }> = ({lists}) => 
                     columns={columns}
                     rowKey={(row, index) => `${row.hash}:${index}`}
                     defaultSort={{key: "name", order: "asc"}}
+                    widthStorageKey={ExtensionListWidthsKey}
                     emptyText={t("ExtensionLists.no_entries")}
                 />
             </div>

@@ -10,6 +10,7 @@ import {
 } from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 import type {AbaSerializedFile} from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import {typeColor} from "../../utils/consts";
+import {AssetTableWidthsKey} from "../../utils/LocalStorageKeys";
 import {toBigInt} from "../../utils/bigint";
 import {appMessage as message, describeError} from "../../utils/feedback";
 import {baseName, formatBytes, formatNumber} from "../../utils/format";
@@ -206,6 +207,7 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
         title: "",
         width: "100px",
         align: "center",
+        resizable: false,
         render: (row) =>
             ExportableTypes.has(row.typeName) ? (
                 <Button
@@ -267,6 +269,7 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
                     columns={columns}
                     rowKey={(row) => `${row.sourceIndex}:${row.pathId}`}
                     defaultSort={{key: "name", order: "asc"}}
+                    widthStorageKey={AssetTableWidthsKey}
                     onRowDoubleClick={(row) => void exportAsset(row)}
                     emptyText={t("AssetTable.empty")}
                 />

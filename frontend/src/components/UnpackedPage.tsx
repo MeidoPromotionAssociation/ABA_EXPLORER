@@ -35,6 +35,7 @@ import {openInModEditor} from "../hooks/modEditor";
 import {TargetOrder, typeColor} from "../utils/consts";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {baseName, formatBytes, formatNumber} from "../utils/format";
+import {UnpackedFileTableWidthsKey} from "../utils/LocalStorageKeys";
 
 const {Text} = Typography;
 
@@ -173,6 +174,7 @@ const UnpackedPage: React.FC = () => {
             title: <Checkbox checked={allVisibleSelected} onChange={toggleAllVisible}/>,
             width: "44px",
             align: "center",
+            resizable: false,
             render: (row) => (
                 <Checkbox
                     checked={selected.has(row.absPath)}
@@ -277,6 +279,7 @@ const UnpackedPage: React.FC = () => {
                             columns={columns}
                             rowKey={(row) => row.absPath}
                             defaultSort={{key: "name", order: "asc"}}
+                            widthStorageKey={UnpackedFileTableWidthsKey}
                             selectedKey={activePath}
                             onRowClick={(row) => setActivePath(row.absPath)}
                             onRowDoubleClick={(row) => void openInModEditor(row.absPath)}
