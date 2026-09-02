@@ -50,9 +50,9 @@ const NavBar: React.FC<NavBarProps> = ({onSelectFile}) => {
         {key: "", icon: <HomeOutlined/>, label: t("NavBar.home")},
         {key: "container", icon: <TableOutlined/>, label: t("NavBar.container")},
         {key: "ct", icon: <UnorderedListOutlined/>, label: t("NavBar.ct")},
-        {key: "search", icon: <SearchOutlined/>, label: t("NavBar.search")},
         {key: "unpacked", icon: <FolderOpenOutlined/>, label: t("NavBar.unpacked")},
         {key: "pack", icon: <InboxOutlined/>, label: t("NavBar.pack")},
+        {key: "search", icon: <SearchOutlined/>, label: t("NavBar.search")},
         {key: "settings", icon: <SettingOutlined/>, label: t("NavBar.settings")},
     ];
 
