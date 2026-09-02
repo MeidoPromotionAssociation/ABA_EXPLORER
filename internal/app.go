@@ -25,7 +25,7 @@ const (
 	// GitHubApiURL 是版本检查使用的 GitHub API 地址 / GitHubApiURL is the GitHub API endpoint used for update checks
 	GitHubApiURL = "https://api.github.com/repos/MeidoPromotionAssociation/ABA_EXPLORER/releases/latest"
 	// CurrentVersion 是当前应用版本 / CurrentVersion is the current application version
-	CurrentVersion = "v0.0.1"
+	CurrentVersion = "v0.1.0"
 )
 
 // maxTextFileBytes 是以文本方式读取文件的大小上限 / maxTextFileBytes caps the size of files read as text
