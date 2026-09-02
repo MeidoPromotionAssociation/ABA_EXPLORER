@@ -16,10 +16,14 @@ func init() {
 	// 注册拖放事件，绑定生成器据此产出强类型的前端 API
 	// Registering the drop event lets the binding generator emit a strongly typed frontend API
 	application.RegisterEvent[string]("explorer:file-dropped")
+	// 索引进度事件，全局搜索建索引时按文件推送
+	// The index-progress event pushed per file while the global search builds its index
+	application.RegisterEvent[internal.IndexProgress](internal.IndexProgressEvent)
 }
 
 func main() {
 	app := internal.NewApp()
+	search := internal.NewSearchService()
 
 	wailsApp := application.New(application.Options{
 		Name:        "ABA_EXPLORER",
@@ -29,6 +33,7 @@ func main() {
 			application.NewService(internal.NewAbaExplorerService()),
 			application.NewService(internal.NewCtExplorerService()),
 			application.NewService(internal.NewConvertService()),
+			application.NewService(search),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -38,6 +43,9 @@ func main() {
 		},
 	})
 	app.SetApplication(wailsApp)
+	search.SetEmitter(func(name string, data any) {
+		wailsApp.Event.Emit(name, data)
+	})
 
 	window := wailsApp.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "ABA EXPLORER by 90135",

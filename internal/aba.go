@@ -92,21 +92,21 @@ type AbaDirectory struct {
 // AbaSerializedFile 是容器内一个 SerializedFile 的头部、元数据与对象列表
 // AbaSerializedFile is the header, metadata, and object list of one SerializedFile in the container
 type AbaSerializedFile struct {
-	DirectoryIndex  int                `json:"directoryIndex"`  // 所在目录条目序号 / Owning directory entry index
-	Name            string             `json:"name"`            // 目录条目名 / Directory entry name
-	FormatVersion   uint32             `json:"formatVersion"`   // SerializedFile 格式版本 / SerializedFile format version
-	UnityVersion    string             `json:"unityVersion"`    // Unity 版本字符串 / Unity version string
-	TargetPlatform  uint32             `json:"targetPlatform"`  // 目标平台 ID / Target platform ID
-	TypeTreeEnabled bool               `json:"typeTreeEnabled"` // 是否含类型树 / Whether type tree data is present
-	BigEndian       bool               `json:"bigEndian"`       // 是否 Big-Endian / Whether the file is Big-Endian
-	MetadataSize    uint32             `json:"metadataSize"`    // 元数据块大小 / Metadata block size
-	DataOffset      int64              `json:"dataOffset"`      // 数据区起始偏移 / Data-area start offset
-	FileSize        int64              `json:"fileSize"`        // SerializedFile 总大小 / Total SerializedFile size
-	TypeCount       int                `json:"typeCount"`       // 类型树定义数量 / Type tree definition count
-	UserInformation string             `json:"userInformation"`  // 元数据尾部用户信息 / User information at the metadata tail
-	ExternalFiles   []AbaExternalFile  `json:"externalFiles"`   // 外部文件引用 / External file references
-	Assets          []AbaAsset         `json:"assets"`          // 对象列表 / Object list
-	ContainerError  string             `json:"containerError"`  // m_Container 读取失败原因，成功时为空 / Reason m_Container reading failed, empty on success
+	DirectoryIndex  int               `json:"directoryIndex"`  // 所在目录条目序号 / Owning directory entry index
+	Name            string            `json:"name"`            // 目录条目名 / Directory entry name
+	FormatVersion   uint32            `json:"formatVersion"`   // SerializedFile 格式版本 / SerializedFile format version
+	UnityVersion    string            `json:"unityVersion"`    // Unity 版本字符串 / Unity version string
+	TargetPlatform  uint32            `json:"targetPlatform"`  // 目标平台 ID / Target platform ID
+	TypeTreeEnabled bool              `json:"typeTreeEnabled"` // 是否含类型树 / Whether type tree data is present
+	BigEndian       bool              `json:"bigEndian"`       // 是否 Big-Endian / Whether the file is Big-Endian
+	MetadataSize    uint32            `json:"metadataSize"`    // 元数据块大小 / Metadata block size
+	DataOffset      int64             `json:"dataOffset"`      // 数据区起始偏移 / Data-area start offset
+	FileSize        int64             `json:"fileSize"`        // SerializedFile 总大小 / Total SerializedFile size
+	TypeCount       int               `json:"typeCount"`       // 类型树定义数量 / Type tree definition count
+	UserInformation string            `json:"userInformation"` // 元数据尾部用户信息 / User information at the metadata tail
+	ExternalFiles   []AbaExternalFile `json:"externalFiles"`   // 外部文件引用 / External file references
+	Assets          []AbaAsset        `json:"assets"`          // 对象列表 / Object list
+	ContainerError  string            `json:"containerError"`  // m_Container 读取失败原因，成功时为空 / Reason m_Container reading failed, empty on success
 }
 
 // AbaExternalFile 是一条外部文件引用 / AbaExternalFile is one external file reference

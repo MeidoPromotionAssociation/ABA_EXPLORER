@@ -13,6 +13,7 @@ import NavBar from "./components/NavBar";
 import HomePage from "./components/HomePage";
 import ContainerPage from "./components/ContainerPage";
 import CtPage from "./components/CtPage";
+import SearchPage from "./components/SearchPage";
 import UnpackedPage from "./components/UnpackedPage";
 import PackPage from "./components/PackPage";
 import SettingsPage from "./components/SettingsPage";
@@ -100,6 +101,7 @@ const App: React.FC = () => {
                             <Route path="/" element={<HomePage/>}/>
                             <Route path="/container" element={<ContainerPage/>}/>
                             <Route path="/ct" element={<CtPage/>}/>
+                            <Route path="/search" element={<SearchPage/>}/>
                             <Route path="/unpacked" element={<UnpackedPage/>}/>
                             <Route path="/pack" element={<PackPage/>}/>
                             <Route path="/settings" element={<SettingsPage/>}/>

@@ -6,9 +6,17 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as internal$0 from "../../../../MeidoPromotionAssociation/ABA_EXPLORER/internal/models.js";
+
 function configure() {
     Object.freeze(Object.assign($Create.Events, {
+        "explorer:index-progress": $$createType0,
     }));
 }
+
+// Private type creation functions
+const $$createType0 = internal$0.IndexProgress.createFrom;
 
 configure();

@@ -1157,6 +1157,41 @@ export class CtVirtualFile {
 }
 
 /**
+ * FacetCount 是一个过滤项及其命中数 / FacetCount is one filter value and its count
+ */
+export class FacetCount {
+    /**
+     * 过滤值 / Filter value
+     */
+    "value": string;
+
+    /**
+     * 索引中的数量 / Count in the index
+     */
+    "count": number;
+
+    /** Creates a new FacetCount instance. */
+    constructor($$source: Partial<FacetCount> = {}) {
+        if (!("value" in $$source)) {
+            this["value"] = "";
+        }
+        if (!("count" in $$source)) {
+            this["count"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new FacetCount instance from a string or object.
+     */
+    static createFrom($$source: any = {}): FacetCount {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new FacetCount($$parsedSource as Partial<FacetCount>);
+    }
+}
+
+/**
  * FilePreview 是一个文件的预览结果
  * 二进制内容不做十六进制转储：那对排查 KCES 资源没有帮助，需要看内部结构时应该先转换成 JSON
  * FilePreview is the preview result of one file
@@ -1215,6 +1250,286 @@ export class FilePreview {
     static createFrom($$source: any = {}): FilePreview {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new FilePreview($$parsedSource as Partial<FilePreview>);
+    }
+}
+
+/**
+ * IndexFacets 是当前索引里出现过的扩展名与来源层，供前端生成过滤选项
+ * IndexFacets lists the extensions and origin layers present in the current index so the frontend can build filters
+ */
+export class IndexFacets {
+    /**
+     * 扩展名及其数量 / Extensions and their counts
+     */
+    "extensions": FacetCount[];
+
+    /**
+     * 来源层及其数量 / Origin layers and their counts
+     */
+    "origins": FacetCount[];
+
+    /** Creates a new IndexFacets instance. */
+    constructor($$source: Partial<IndexFacets> = {}) {
+        if (!("extensions" in $$source)) {
+            this["extensions"] = [];
+        }
+        if (!("origins" in $$source)) {
+            this["origins"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IndexFacets instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IndexFacets {
+        const $$createField0_0 = $$createType24;
+        const $$createField1_0 = $$createType24;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField0_0($$parsedSource["extensions"]);
+        }
+        if ("origins" in $$parsedSource) {
+            $$parsedSource["origins"] = $$createField1_0($$parsedSource["origins"]);
+        }
+        return new IndexFacets($$parsedSource as Partial<IndexFacets>);
+    }
+}
+
+/**
+ * IndexOptions 是一次索引构建的输入 / IndexOptions is the input of one index build
+ */
+export class IndexOptions {
+    /**
+     * 要扫描的根目录 / Root directory to scan
+     */
+    "root": string;
+
+    /**
+     * Deep 打开后会解析 .menuassets/.materialassets/.pmatassets，取出 .menu/.mate/.pmat 这些
+     * 只存在于容器内部、catalog 不会列出的名字
+     * Deep parses .menuassets, .materialassets, and .pmatassets to recover the .menu, .mate, and .pmat names
+     * that exist only inside those containers and are never listed by a catalog
+     */
+    "deep": boolean;
+
+    /**
+     * Refresh 打开后忽略磁盘缓存，从头重扫每个文件
+     * 指纹只看大小与修改时间，理论上存在改了内容却保持两者不变的情况，这个开关是那种情况的出路
+     * Refresh ignores the on-disk cache and rescans every file from scratch
+     * Fingerprints only compare size and modification time, so content can in principle change while both
+     * stay put, and this switch is the way out of that case
+     */
+    "refresh": boolean;
+
+    /** Creates a new IndexOptions instance. */
+    constructor($$source: Partial<IndexOptions> = {}) {
+        if (!("root" in $$source)) {
+            this["root"] = "";
+        }
+        if (!("deep" in $$source)) {
+            this["deep"] = false;
+        }
+        if (!("refresh" in $$source)) {
+            this["refresh"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IndexOptions instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IndexOptions {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IndexOptions($$parsedSource as Partial<IndexOptions>);
+    }
+}
+
+/**
+ * IndexProgress 是构建过程中推送给前端的进度 / IndexProgress is the progress pushed to the frontend during a build
+ */
+export class IndexProgress {
+    /**
+     * 已处理文件数 / Files processed
+     */
+    "done": number;
+
+    /**
+     * 待处理文件总数 / Total files to process
+     */
+    "total": number;
+
+    /**
+     * 已收集的名字数 / Names collected so far
+     */
+    "names": number;
+
+    /**
+     * 最近处理的文件名 / Most recently processed file name
+     */
+    "current": string;
+
+    /**
+     * 构建是否已结束 / Whether the build has finished
+     */
+    "finished": boolean;
+
+    /** Creates a new IndexProgress instance. */
+    constructor($$source: Partial<IndexProgress> = {}) {
+        if (!("done" in $$source)) {
+            this["done"] = 0;
+        }
+        if (!("total" in $$source)) {
+            this["total"] = 0;
+        }
+        if (!("names" in $$source)) {
+            this["names"] = 0;
+        }
+        if (!("current" in $$source)) {
+            this["current"] = "";
+        }
+        if (!("finished" in $$source)) {
+            this["finished"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IndexProgress instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IndexProgress {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IndexProgress($$parsedSource as Partial<IndexProgress>);
+    }
+}
+
+/**
+ * IndexStats 是一次索引构建的结果概况 / IndexStats summarizes the outcome of one index build
+ */
+export class IndexStats {
+    /**
+     * 被索引的根目录 / Indexed root directory
+     */
+    "root": string;
+
+    /**
+     * 是否解析了容器内部名 / Whether inner container names were parsed
+     */
+    "deep": boolean;
+
+    /**
+     * 索引是否可用 / Whether an index is available
+     */
+    "ready": boolean;
+
+    /**
+     * 是否正在构建 / Whether a build is running
+     */
+    "building": boolean;
+
+    /**
+     * 上次构建是否被取消 / Whether the last build was cancelled
+     */
+    "cancelled": boolean;
+
+    /**
+     * 成功解析的 .ct 数 / Successfully parsed .ct count
+     */
+    "catalogs": number;
+
+    /**
+     * 成功打开的容器数 / Successfully opened container count
+     */
+    "containers": number;
+
+    /**
+     * 索引中的名字总数 / Total names in the index
+     */
+    "names": number;
+
+    /**
+     * 其中来自容器内部的名字数 / Names among them coming from inside containers
+     */
+    "innerNames": number;
+
+    /**
+     * 直接沿用磁盘缓存的来源数 / Sources taken straight from the on-disk cache
+     */
+    "reused": number;
+
+    /**
+     * 整份索引是否直接来自缓存 / Whether the whole index came straight from the cache
+     */
+    "fromCache": boolean;
+
+    /**
+     * 构建耗时毫秒 / Build duration in milliseconds
+     */
+    "elapsedMs": number;
+
+    /**
+     * 跳过的文件及原因 / Skipped files and their reasons
+     */
+    "warnings": string[];
+
+    /** Creates a new IndexStats instance. */
+    constructor($$source: Partial<IndexStats> = {}) {
+        if (!("root" in $$source)) {
+            this["root"] = "";
+        }
+        if (!("deep" in $$source)) {
+            this["deep"] = false;
+        }
+        if (!("ready" in $$source)) {
+            this["ready"] = false;
+        }
+        if (!("building" in $$source)) {
+            this["building"] = false;
+        }
+        if (!("cancelled" in $$source)) {
+            this["cancelled"] = false;
+        }
+        if (!("catalogs" in $$source)) {
+            this["catalogs"] = 0;
+        }
+        if (!("containers" in $$source)) {
+            this["containers"] = 0;
+        }
+        if (!("names" in $$source)) {
+            this["names"] = 0;
+        }
+        if (!("innerNames" in $$source)) {
+            this["innerNames"] = 0;
+        }
+        if (!("reused" in $$source)) {
+            this["reused"] = 0;
+        }
+        if (!("fromCache" in $$source)) {
+            this["fromCache"] = false;
+        }
+        if (!("elapsedMs" in $$source)) {
+            this["elapsedMs"] = 0;
+        }
+        if (!("warnings" in $$source)) {
+            this["warnings"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IndexStats instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IndexStats {
+        const $$createField12_0 = $$createType10;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("warnings" in $$parsedSource) {
+            $$parsedSource["warnings"] = $$createField12_0($$parsedSource["warnings"]);
+        }
+        return new IndexStats($$parsedSource as Partial<IndexStats>);
     }
 }
 
@@ -1326,6 +1641,203 @@ export class PathInfo {
 }
 
 /**
+ * SearchHit 是一条命中记录 / SearchHit is one matched record
+ */
+export class SearchHit {
+    /**
+     * 资源名 / Resource name
+     */
+    "name": string;
+
+    /**
+     * 资源扩展名 / Resource extension
+     */
+    "extension": string;
+
+    /**
+     * .menu 的游戏内显示名或 .mate 的 shader 名 / In-game display name of a .menu or shader name of a .mate
+     */
+    "detail": string;
+
+    /**
+     * 名字来源层 / Origin layer of the name
+     */
+    "origin": string;
+
+    /**
+     * 宿主容器条目名，直接资源为空 / Owning container entry name, empty for direct resources
+     */
+    "owner": string;
+
+    /**
+     * 所在容器绝对路径，未能定位时为空 / Absolute path of the owning container, empty when it could not be located
+     */
+    "containerPath": string;
+
+    /**
+     * 所在容器文件名 / File name of the owning container
+     */
+    "containerName": string;
+
+    /**
+     * 配套 .ct 绝对路径，没有则为空 / Absolute path of the paired .ct, empty when absent
+     */
+    "catalogPath": string;
+
+    /** Creates a new SearchHit instance. */
+    constructor($$source: Partial<SearchHit> = {}) {
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("extension" in $$source)) {
+            this["extension"] = "";
+        }
+        if (!("detail" in $$source)) {
+            this["detail"] = "";
+        }
+        if (!("origin" in $$source)) {
+            this["origin"] = "";
+        }
+        if (!("owner" in $$source)) {
+            this["owner"] = "";
+        }
+        if (!("containerPath" in $$source)) {
+            this["containerPath"] = "";
+        }
+        if (!("containerName" in $$source)) {
+            this["containerName"] = "";
+        }
+        if (!("catalogPath" in $$source)) {
+            this["catalogPath"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SearchHit instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SearchHit {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SearchHit($$parsedSource as Partial<SearchHit>);
+    }
+}
+
+/**
+ * SearchQuery 是一次查询的条件 / SearchQuery is the condition of one query
+ */
+export class SearchQuery {
+    /**
+     * 匹配文本，大小写不敏感子串 / Match text, a case-insensitive substring
+     */
+    "text": string;
+
+    /**
+     * 限定扩展名，空表示不限 / Restrict to extensions, empty means no restriction
+     */
+    "extensions": string[];
+
+    /**
+     * 限定来源层，空表示不限 / Restrict to origin layers, empty means no restriction
+     */
+    "origins": string[];
+
+    /**
+     * 返回条数上限 / Maximum hits to return
+     */
+    "limit": number;
+
+    /** Creates a new SearchQuery instance. */
+    constructor($$source: Partial<SearchQuery> = {}) {
+        if (!("text" in $$source)) {
+            this["text"] = "";
+        }
+        if (!("extensions" in $$source)) {
+            this["extensions"] = [];
+        }
+        if (!("origins" in $$source)) {
+            this["origins"] = [];
+        }
+        if (!("limit" in $$source)) {
+            this["limit"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SearchQuery instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SearchQuery {
+        const $$createField1_0 = $$createType10;
+        const $$createField2_0 = $$createType10;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField1_0($$parsedSource["extensions"]);
+        }
+        if ("origins" in $$parsedSource) {
+            $$parsedSource["origins"] = $$createField2_0($$parsedSource["origins"]);
+        }
+        return new SearchQuery($$parsedSource as Partial<SearchQuery>);
+    }
+}
+
+/**
+ * SearchResult 是一次查询的结果 / SearchResult is the outcome of one query
+ */
+export class SearchResult {
+    /**
+     * 命中记录，已按相关度排序 / Matched records ordered by relevance
+     */
+    "hits": SearchHit[];
+
+    /**
+     * 命中总数，未被上限裁剪 / Total match count before the limit is applied
+     */
+    "total": number;
+
+    /**
+     * 是否因上限被裁剪 / Whether the limit truncated the list
+     */
+    "truncated": boolean;
+
+    /**
+     * 查询耗时毫秒 / Query duration in milliseconds
+     */
+    "elapsedMs": number;
+
+    /** Creates a new SearchResult instance. */
+    constructor($$source: Partial<SearchResult> = {}) {
+        if (!("hits" in $$source)) {
+            this["hits"] = [];
+        }
+        if (!("total" in $$source)) {
+            this["total"] = 0;
+        }
+        if (!("truncated" in $$source)) {
+            this["truncated"] = false;
+        }
+        if (!("elapsedMs" in $$source)) {
+            this["elapsedMs"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SearchResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SearchResult {
+        const $$createField0_0 = $$createType26;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("hits" in $$parsedSource) {
+            $$parsedSource["hits"] = $$createField0_0($$parsedSource["hits"]);
+        }
+        return new SearchResult($$parsedSource as Partial<SearchResult>);
+    }
+}
+
+/**
  * UnpackResult 是一次解包的结果 / UnpackResult is the outcome of one unpack operation
  */
 export class UnpackResult {
@@ -1355,7 +1867,7 @@ export class UnpackResult {
      * Creates a new UnpackResult instance from a string or object.
      */
     static createFrom($$source: any = {}): UnpackResult {
-        const $$createField1_0 = $$createType24;
+        const $$createField1_0 = $$createType28;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("files" in $$parsedSource) {
             $$parsedSource["files"] = $$createField1_0($$parsedSource["files"]);
@@ -1482,5 +1994,9 @@ const $$createType19 = CtCatalog.createFrom;
 const $$createType20 = $Create.Nullable($$createType19);
 const $$createType21 = CtExtensionNameList.createFrom;
 const $$createType22 = $Create.Array($$createType21);
-const $$createType23 = UnpackedFile.createFrom;
+const $$createType23 = FacetCount.createFrom;
 const $$createType24 = $Create.Array($$createType23);
+const $$createType25 = SearchHit.createFrom;
+const $$createType26 = $Create.Array($$createType25);
+const $$createType27 = UnpackedFile.createFrom;
+const $$createType28 = $Create.Array($$createType27);

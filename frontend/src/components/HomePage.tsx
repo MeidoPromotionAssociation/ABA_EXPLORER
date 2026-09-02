@@ -3,6 +3,7 @@ import {Button, Card, Col, Empty, List, Row, Space, Typography, theme} from "ant
 import {
     FolderOpenOutlined,
     InboxOutlined,
+    SearchOutlined,
     TableOutlined,
     UnorderedListOutlined,
 } from "@ant-design/icons";
@@ -19,7 +20,7 @@ const {Title, Text, Paragraph} = Typography;
 
 /**
  * HomePage 入口页
- * 四个入口分别对应打开容器、打开内容表、浏览解包目录和打包，
+ * 五个入口分别对应打开容器、打开内容表、全局搜索、浏览解包目录和打包，
  * 下方列出最近打开过的路径，点击即重新打开
  */
 const HomePage: React.FC = () => {
@@ -69,6 +70,13 @@ const HomePage: React.FC = () => {
             action: () => pickFile(CtFilter, t("Common.ct_files")),
         },
         {
+            key: "search",
+            icon: <SearchOutlined style={{fontSize: 26, color: token.colorPrimary}}/>,
+            title: t("HomePage.search"),
+            description: t("HomePage.search_desc"),
+            action: () => navigate("/search"),
+        },
+        {
             key: "unpacked",
             icon: <FolderOpenOutlined style={{fontSize: 26, color: token.colorPrimary}}/>,
             title: t("HomePage.open_unpacked"),
@@ -93,9 +101,9 @@ const HomePage: React.FC = () => {
 
             <Row gutter={[16, 16]}>
                 {entries.map((entry) => (
-                    <Col key={entry.key} xs={24} sm={12} lg={6}>
+                    <Col key={entry.key} xs={24} sm={12} lg={8}>
                         <Card hoverable onClick={entry.action} style={{height: "100%"}}>
-                            <Space direction="vertical" size={6}>
+                            <Space vertical size={6}>
                                 {entry.icon}
                                 <Text strong>{entry.title}</Text>
                                 <Text type="secondary" style={{fontSize: 12}}>{entry.description}</Text>

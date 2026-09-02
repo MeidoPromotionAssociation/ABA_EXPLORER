@@ -28,6 +28,11 @@ export const CtOverviewOpenKey = "CtOverviewOpen"; // 内容表页概览是否�
 
 export const AutoGenerateCtKey = "AutoGenerateCt"; // 打包后是否自动生成配套 .ct
 
+// 全局搜索
+export const SearchRootKey = "SearchIndexRoot"; // 上次索引的根目录
+
+export const SearchDeepKey = "SearchIndexDeep"; // 是否解析容器内部名（.menu/.mate/.pmat）
+
 // 表格
 export const ColumnWidthsPrefix = "ColumnWidths:"; // 用户拖动调整过的列宽，后接表标识
 
@@ -43,6 +48,8 @@ export const CatalogItemTableWidthsKey = "catalogItems"; // 内容表页 catalog
 export const ExtensionListWidthsKey = "extensionNames"; // 内容表页扩展名分组表
 
 export const UnpackedFileTableWidthsKey = "unpackedFiles"; // 解包产物页文件表
+
+export const SearchHitTableWidthsKey = "searchHits"; // 全局搜索页结果表
 
 // 最近打开列表的上限
 export const RecentFilesLimit = 12;

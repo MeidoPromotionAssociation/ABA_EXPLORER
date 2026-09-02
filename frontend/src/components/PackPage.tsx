@@ -208,7 +208,7 @@ const PackPage: React.FC = () => {
                             style={{marginTop: 8}}
                             title={t("PackPage.warnings")}
                             description={
-                                <Space direction="vertical" size={8}>
+                                <Space vertical size={8}>
                                     {result.warnings.map((warning, index) => (
                                         <Text key={index} style={{fontSize: 12, whiteSpace: "pre-wrap"}}>
                                             {warning}
@@ -222,7 +222,7 @@ const PackPage: React.FC = () => {
                         status="success"
                         title={t("PackPage.result_title")}
                         subTitle={
-                            <Space direction="vertical" size={2}>
+                            <Space vertical size={2}>
                                 <Text className="mono" style={{fontSize: 12}}>{result.abaPath}</Text>
                                 <Text className="mono" style={{fontSize: 12}}>{result.ctPath}</Text>
                             </Space>

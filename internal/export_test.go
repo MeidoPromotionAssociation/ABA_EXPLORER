@@ -3,11 +3,50 @@ package internal
 import (
 	"bytes"
 	"context"
+	"image"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// decodedPixels 把 PNG 解成一串规范化的 RGBA 字节，用于比较两张图的内容
+// PNG 的字节表示不能直接比：BC7 之类的压缩格式要经过 ImageMagick，它会往 tIME 和 tEXt 里写
+// 当前时间，于是同一张图每次编码出来的字节都不同，而 IHDR 与 IDAT 其实完全一致
+// decodedPixels decodes a PNG into a canonical RGBA byte run for comparing the content of two images
+// PNG bytes cannot be compared directly: compressed formats such as BC7 go through ImageMagick, which stamps
+// the current time into tIME and tEXt, so the same image encodes to different bytes every time even though
+// IHDR and IDAT are identical
+func decodedPixels(t *testing.T, data []byte, label string) []byte {
+	t.Helper()
+	decoded, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("decode the %s PNG: %v", label, err)
+	}
+	bounds := decoded.Bounds()
+	if bounds.Empty() {
+		t.Fatalf("the %s PNG is empty", label)
+	}
+	pixels := make([]byte, 0, bounds.Dx()*bounds.Dy()*4)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			red, green, blue, alpha := decoded.At(x, y).RGBA()
+			pixels = append(pixels, byte(red>>8), byte(green>>8), byte(blue>>8), byte(alpha>>8))
+		}
+	}
+	return pixels
+}
+
+// pngBounds 返回一张 PNG 的尺寸 / pngBounds returns the dimensions of a PNG
+func pngBounds(t *testing.T, data []byte, label string) image.Rectangle {
+	t.Helper()
+	config, err := png.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("read the %s PNG header: %v", label, err)
+	}
+	return image.Rect(0, 0, config.Width, config.Height)
+}
 
 // findAsset 在结构快照里找到第一个指定类型的对象及其所属 SerializedFile 名
 // findAsset locates the first object of a given type in a snapshot along with its owning SerializedFile name
@@ -135,7 +174,17 @@ func TestExportImageAssetMatchesConversion(t *testing.T) {
 		t.Fatalf("read converted PNG: %v", err)
 	}
 	if !bytes.Equal(directBytes, convertedBytes) {
-		t.Errorf("direct export (%d bytes) differs from unpack+convert (%d bytes)", len(directBytes), len(convertedBytes))
+		// 字节不同还有可能只是 ImageMagick 的时间戳，图像本身要按像素比
+		// Differing bytes can still be nothing but ImageMagick's timestamp, so the image is compared pixel by pixel
+		directBounds := pngBounds(t, directBytes, "directly exported")
+		convertedBounds := pngBounds(t, convertedBytes, "converted")
+		if directBounds != convertedBounds {
+			t.Fatalf("direct export is %v but unpack+convert is %v", directBounds, convertedBounds)
+		}
+		if !bytes.Equal(decodedPixels(t, directBytes, "directly exported"), decodedPixels(t, convertedBytes, "converted")) {
+			t.Errorf("direct export (%d bytes) and unpack+convert (%d bytes) decode to different pixels",
+				len(directBytes), len(convertedBytes))
+		}
 	}
 }
 

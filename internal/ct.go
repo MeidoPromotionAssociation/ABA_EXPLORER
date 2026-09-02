@@ -30,15 +30,15 @@ func NewCtExplorerService() *CtExplorerService {
 // CtOverview 是一个 .ct 内容表的完整结构快照
 // CtOverview is a complete structural snapshot of one .ct content table
 type CtOverview struct {
-	Path        string                `json:"path"`        // .ct 文件路径 / .ct file path
-	FileSize    int64                 `json:"fileSize"`    // 磁盘上的字节数 / On-disk byte count
-	Version     int32                 `json:"version"`     // 根 VirtualDirectory 版本 / Root VirtualDirectory version
-	Framing     string                `json:"framing"`     // 外层封装：legacy 或 extended / Outer framing, legacy or extended
-	Directories []CtDirectory         `json:"directories"` // 子目录及其版本 / Child directories and their versions
-	Files       []CtVirtualFile       `json:"files"`       // 虚拟文件表 / Virtual file table
-	Catalog     *CtCatalog            `json:"catalog"`     // 解码后的 catalog，缺失或解析失败时为空 / Decoded catalog, empty when missing or unparsable
-	CatalogError string               `json:"catalogError"` // catalog 解析失败原因 / Reason catalog parsing failed
-	Extensions  []CtExtensionNameList `json:"extensions"`  // 按扩展名分组的名称表 / Name lists grouped by extension
+	Path         string                `json:"path"`         // .ct 文件路径 / .ct file path
+	FileSize     int64                 `json:"fileSize"`     // 磁盘上的字节数 / On-disk byte count
+	Version      int32                 `json:"version"`      // 根 VirtualDirectory 版本 / Root VirtualDirectory version
+	Framing      string                `json:"framing"`      // 外层封装：legacy 或 extended / Outer framing, legacy or extended
+	Directories  []CtDirectory         `json:"directories"`  // 子目录及其版本 / Child directories and their versions
+	Files        []CtVirtualFile       `json:"files"`        // 虚拟文件表 / Virtual file table
+	Catalog      *CtCatalog            `json:"catalog"`      // 解码后的 catalog，缺失或解析失败时为空 / Decoded catalog, empty when missing or unparsable
+	CatalogError string                `json:"catalogError"` // catalog 解析失败原因 / Reason catalog parsing failed
+	Extensions   []CtExtensionNameList `json:"extensions"`   // 按扩展名分组的名称表 / Name lists grouped by extension
 }
 
 // CtDirectory 是内容表中的一个子目录 / CtDirectory is one child directory in a content table
@@ -59,21 +59,21 @@ type CtVirtualFile struct {
 // CtCatalog is the decoded content of the catalog virtual file
 // Hash and CreateTime travel as strings because both are 64-bit values beyond the JS safe-integer range
 type CtCatalog struct {
-	Kind              string       `json:"kind"`              // assetBundle 或 virtualAsset / assetBundle or virtualAsset
-	Version           int32        `json:"version"`           // 序列化版本 / Serialization version
-	CatalogType       int32        `json:"catalogType"`       // 资源分类标志位原值 / Raw resource-category flags
-	CatalogTypeNames  []string     `json:"catalogTypeNames"`  // 标志位拆解出的分类名 / Category names decoded from the flags
-	PackageType       int32        `json:"packageType"`       // 包类型原值 / Raw package type
-	PackageTypeName   string       `json:"packageTypeName"`   // 包类型名 / Package type name
-	Priority          int32        `json:"priority"`          // 排序优先级 / Ordering priority
-	Name              string       `json:"name"`              // catalog 名称 / Catalog name
-	SubName           string       `json:"subName"`           // catalog 子名称 / Catalog sub-name
-	Hash              string       `json:"hash"`              // catalog 哈希的十进制字符串 / Decimal string of the catalog hash
-	CreateTime        string       `json:"createTime"`        // 创建时间原值的十进制字符串 / Decimal string of the raw creation-time value
-	IsEncrypted       bool         `json:"isEncrypted"`       // AssetBundle 是否加密 / Whether AssetBundles are encrypted
-	ResourceFileNames []string     `json:"resourceFileNames"` // AssetBundle 资源文件名 / AssetBundle resource file names
-	ExtensionList     []string     `json:"extensionList"`     // 扩展名虚拟文件列表 / Extension-name virtual-file list
-	Items             []CtCatalogItem `json:"items"`          // catalog 条目 / Catalog items
+	Kind              string          `json:"kind"`              // assetBundle 或 virtualAsset / assetBundle or virtualAsset
+	Version           int32           `json:"version"`           // 序列化版本 / Serialization version
+	CatalogType       int32           `json:"catalogType"`       // 资源分类标志位原值 / Raw resource-category flags
+	CatalogTypeNames  []string        `json:"catalogTypeNames"`  // 标志位拆解出的分类名 / Category names decoded from the flags
+	PackageType       int32           `json:"packageType"`       // 包类型原值 / Raw package type
+	PackageTypeName   string          `json:"packageTypeName"`   // 包类型名 / Package type name
+	Priority          int32           `json:"priority"`          // 排序优先级 / Ordering priority
+	Name              string          `json:"name"`              // catalog 名称 / Catalog name
+	SubName           string          `json:"subName"`           // catalog 子名称 / Catalog sub-name
+	Hash              string          `json:"hash"`              // catalog 哈希的十进制字符串 / Decimal string of the catalog hash
+	CreateTime        string          `json:"createTime"`        // 创建时间原值的十进制字符串 / Decimal string of the raw creation-time value
+	IsEncrypted       bool            `json:"isEncrypted"`       // AssetBundle 是否加密 / Whether AssetBundles are encrypted
+	ResourceFileNames []string        `json:"resourceFileNames"` // AssetBundle 资源文件名 / AssetBundle resource file names
+	ExtensionList     []string        `json:"extensionList"`     // 扩展名虚拟文件列表 / Extension-name virtual-file list
+	Items             []CtCatalogItem `json:"items"`             // catalog 条目 / Catalog items
 }
 
 // CtCatalogItem 是一条 catalog 资源条目，同时覆盖 AssetBundle 与 VirtualAsset 两种布局
@@ -87,9 +87,9 @@ type CtCatalogItem struct {
 
 // CtExtensionNameList 是一个扩展名分组下的名称表 / CtExtensionNameList is the name list under one extension group
 type CtExtensionNameList struct {
-	Key       string              `json:"key"`       // ExtensionNameLists 的键 / Key in ExtensionNameLists
-	Extension string              `json:"extension"` // 游戏字段 extention 的值 / Value of the game's extention field
-	Data      []CtExtensionName   `json:"data"`      // 名称与哈希条目 / Name and hash entries
+	Key       string            `json:"key"`       // ExtensionNameLists 的键 / Key in ExtensionNameLists
+	Extension string            `json:"extension"` // 游戏字段 extention 的值 / Value of the game's extention field
+	Data      []CtExtensionName `json:"data"`      // 名称与哈希条目 / Name and hash entries
 }
 
 // CtExtensionName 是扩展名表中的一条记录 / CtExtensionName is one record in an extension name list

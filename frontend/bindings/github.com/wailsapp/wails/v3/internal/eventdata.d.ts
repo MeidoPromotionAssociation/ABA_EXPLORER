@@ -5,10 +5,15 @@
 // @ts-ignore: Unused imports
 import type { Events } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import type * as internal$0 from "../../../../MeidoPromotionAssociation/ABA_EXPLORER/internal/models.js";
+
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
             "explorer:file-dropped": string;
+            "explorer:index-progress": internal$0.IndexProgress;
         }
     }
 }

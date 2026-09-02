@@ -5,11 +5,13 @@ import * as AbaExplorerService from "./abaexplorerservice.js";
 import * as App from "./app.js";
 import * as ConvertService from "./convertservice.js";
 import * as CtExplorerService from "./ctexplorerservice.js";
+import * as SearchService from "./searchservice.js";
 export {
     AbaExplorerService,
     App,
     ConvertService,
-    CtExplorerService
+    CtExplorerService,
+    SearchService
 };
 
 export {
@@ -28,9 +30,17 @@ export {
     CtExtensionNameList,
     CtOverview,
     CtVirtualFile,
+    FacetCount,
     FilePreview,
+    IndexFacets,
+    IndexOptions,
+    IndexProgress,
+    IndexStats,
     PackResult,
     PathInfo,
+    SearchHit,
+    SearchQuery,
+    SearchResult,
     UnpackResult,
     UnpackedFile,
     VersionCheckResult

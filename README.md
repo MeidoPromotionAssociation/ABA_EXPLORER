@@ -19,6 +19,7 @@ Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/M
 - **Container browsing**: UnityFS header, block directory metadata, data blocks, directory entries, and the header and external references of every SerializedFile
 - **Object table**: PathID, type, name, size, offset and AssetBundle load name of every Unity object in the container, filterable by type and source
 - **Content table browsing**: the catalog of `.ct` files (category flags, package type, priority, hash), the extension table and virtual files, extractable individually or all at once
+- **Global search**: index a whole game resource directory and look up which `.aba` holds a name. Besides the resources listed by each catalog, it parses `.menuassets`, `.materialassets` and `.pmatassets` to recover the `.menu`, `.mate` and `.pmat` names that exist only inside a container and are never listed by a catalog, and it matches in-game display names too. Indexing reads only container metadata, so a 22 GB resource tree takes under 200 MB of actual reads. The index is cached on disk and restored on the next launch, and an update reparses only the files whose size or modification time changed, so installing a MOD costs a second instead of a full rescan
 - **Unpacking**: extract into a pure asset directory without metadata, preview images or external stream files, with output organized into directories by Unity type
 - **Packing**: pack a pure asset directory back into an ABA fixed at Unity 2022.3.35f1, generate the matching `.ct` at the same time, and show the in-game loading warnings reported by the packer
 - **Preview**: Texture2D and Sprite are decoded directly into images, text assets are shown as UTF-8
@@ -118,6 +119,7 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - **容器浏览**：UnityFS 头部、块目录元数据、数据块、目录条目、每个 SerializedFile 的头部与外部引用
 - **对象表**：容器内全部 Unity 对象的 PathID、类型、名称、大小、偏移与 AssetBundle 加载名，支持按类型与来源筛选
 - **内容表浏览**：`.ct` 的 catalog（分类标志位、包类型、优先级、哈希）、扩展名表与虚拟文件，可单个或全部提取
+- **全局搜索**：对整个游戏资源目录建立索引，按名字查出它在哪个 `.aba` 里。除 catalog 列出的资源外，还会解析 `.menuassets`、`.materialassets`、`.pmatassets`，找回 `.menu`、`.mate`、`.pmat` 这些只存在于容器内部、catalog 不会列出的名字，也支持按游戏内显示名搜索。索引只读取容器元数据，22 GB 的资源实际读取量不到 200 MB；索引会缓存到磁盘，下次启动直接恢复，更新时只重新解析大小或修改时间变过的文件，装一个 MOD 是一秒而不是全量重扫
 - **解包**：提取为不含 metadata、预览图与外部流文件的纯资源目录，产物按 Unity 类型分目录
 - **打包**：把纯资源目录打回固定 Unity 2022.3.35f1 的 ABA，同时生成配套 `.ct`，并展示打包器给出的游戏加载警告
 - **预览**：Texture2D 与 Sprite 直接解码成图片，文本资源按 UTF-8 展示
@@ -217,6 +219,7 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - **コンテナ閲覧**：UnityFS ヘッダー、ブロックディレクトリのメタデータ、データブロック、ディレクトリエントリ、各 SerializedFile のヘッダーと外部参照
 - **オブジェクト一覧**：コンテナ内のすべての Unity オブジェクトの PathID、型、名前、サイズ、オフセット、AssetBundle 読み込み名を表示し、型と出所によるフィルタリングに対応
 - **コンテンツテーブル閲覧**：`.ct` の catalog（カテゴリフラグ、パッケージ種別、優先度、ハッシュ）、拡張子テーブル、仮想ファイルを閲覧でき、個別または一括で抽出可能
+- **全体検索**：ゲームのリソースフォルダー全体にインデックスを作成し、名前からどの `.aba` に入っているかを調べられます。catalog に載っているリソースに加えて `.menuassets`・`.materialassets`・`.pmatassets` を解析し、コンテナ内部にしか存在せず catalog には載らない `.menu`・`.mate`・`.pmat` の名前も取り出し、ゲーム内の表示名でも検索できます。インデックスはコンテナのメタデータしか読まないため、22 GB のリソースでも実際の読み取りは 200 MB 未満です。インデックスはディスクに保存され次回起動時にそのまま復元し、更新時はサイズまたは更新日時が変わったファイルだけを解析し直すため、MOD を 1 つ導入しても全体の再スキャンではなく数秒で済みます
 - **アンパック**：metadata、プレビュー画像、外部ストリームファイルを含まない純粋なリソースディレクトリとして抽出し、出力は Unity の型ごとにディレクトリ分けされます
 - **パック**：純粋なリソースディレクトリを Unity 2022.3.35f1 固定の ABA に戻し、対応する `.ct` も同時に生成し、パッカーが報告するゲーム読み込み時の警告を表示します
 - **プレビュー**：Texture2D と Sprite は直接画像にデコードし、テキストリソースは UTF-8 として表示します

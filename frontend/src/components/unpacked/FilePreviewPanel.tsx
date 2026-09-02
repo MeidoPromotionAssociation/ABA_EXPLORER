@@ -144,7 +144,7 @@ const FilePreviewPanel: React.FC<{ file: UnpackedFile | null }> = ({file}) => {
                         </Button>
                     ))
                 )}
-                <Divider type="vertical" style={{margin: 0}}/>
+                <Divider vertical style={{margin: 0}}/>
                 {canModEdit && (
                     <Button
                         size="small"
