@@ -20,6 +20,7 @@ import SettingsPage from "./components/SettingsPage";
 import {DefaultThemeColor, useDarkMode, useThemeColor} from "./hooks/themeSwitch";
 import useFileOpener from "./hooks/fileOpener";
 import {bindMessage} from "./utils/feedback";
+import {FileDroppedEvent, ProtocolOpenEvent} from "./utils/consts";
 import {resolveUiLanguage} from "./utils/i18n";
 import {App as AppService} from "../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 
@@ -74,7 +75,20 @@ const App: React.FC = () => {
 
     // 用户拖放文件
     useEffect(() => {
-        const off = Events.On("explorer:file-dropped", async (event: any) => {
+        const off = Events.On(FileDroppedEvent, async (event: any) => {
+            const data = event?.data;
+            const path = Array.isArray(data) ? data[0] : data;
+            if (typeof path === "string" && path) await openPath(path);
+        });
+        return () => {
+            off();
+        };
+    }, [openPath]);
+
+    // 开启单实例后，另一次启动（协议唤起或文件关联双击）会把目标路径转交到这里
+    // With single instance on, another launch — a protocol invocation or an association double-click — hands its target here
+    useEffect(() => {
+        const off = Events.On(ProtocolOpenEvent, async (event: any) => {
             const data = event?.data;
             const path = Array.isArray(data) ? data[0] : data;
             if (typeof path === "string" && path) await openPath(path);

@@ -57,7 +57,7 @@ func TestResourceNameFromLoadName(t *testing.T) {
 // buildSampleIndex builds one deep index over the real sample directory shared by the cases below
 func buildSampleIndex(t *testing.T) (*SearchService, IndexStats) {
 	t.Helper()
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 	service := NewSearchService()
 	stats, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
@@ -339,13 +339,13 @@ func TestSearchKeepsExactMatchInLargeIndex(t *testing.T) {
 	}
 }
 
-// isolatedCacheDir 把索引缓存指向一个临时目录，避免测试写进用户真实的配置目录
+// isolatedConfigDir 把用户配置目录指向一个临时目录，避免测试写进真实的索引缓存与设置文件
 // os.UserConfigDir 在 Windows 上取 %AppData%，在 Linux 上取 $XDG_CONFIG_HOME，两个都设才跨平台
-// isolatedCacheDir points the index cache at a temporary directory so tests never write into the user's
-// real config directory
+// isolatedConfigDir points the user config directory at a temporary directory so tests never touch the real
+// index cache or settings file
 // os.UserConfigDir reads %AppData% on Windows and $XDG_CONFIG_HOME on Linux, so both must be set to cover
 // the platforms this project targets
-func isolatedCacheDir(t *testing.T) {
+func isolatedConfigDir(t *testing.T) {
 	t.Helper()
 	dir := t.TempDir()
 	t.Setenv("AppData", dir)
@@ -383,7 +383,7 @@ func sampleCopy(t *testing.T, names ...string) string {
 // A cache that drops or misaligns a field makes searches quietly return less, which is harder to notice
 // than an outright error
 func TestIndexCacheRoundTrip(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 
 	service := NewSearchService()
@@ -431,7 +431,7 @@ func TestIndexCacheRoundTrip(t *testing.T) {
 // TestBuildIndexReusesCache 检查文件没变时第二次构建整份沿用缓存
 // TestBuildIndexReusesCache checks that a second build reuses the whole cache when no file changed
 func TestBuildIndexReusesCache(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 
 	service := NewSearchService()
@@ -461,7 +461,7 @@ func TestBuildIndexReusesCache(t *testing.T) {
 // TestBuildIndexRescansChangedFile checks that a changed file is rescanned rather than served from the cache
 // The dangerous cache failure is not slowness but reporting stale content after a file has changed
 func TestBuildIndexRescansChangedFile(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct", "nt008_chignon.aba", "nt008_chignon.ct")
 
 	service := NewSearchService()
@@ -532,7 +532,7 @@ func innerNamesOfContainer(service *SearchService, containerName string) int {
 // TestBuildIndexPicksUpNewFile checks that a newly added file gets indexed
 // Installing a MOD means dropping files into the directory, the most common incremental case
 func TestBuildIndexPicksUpNewFile(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	source := testDataDir(t)
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
@@ -568,7 +568,7 @@ func TestBuildIndexPicksUpNewFile(t *testing.T) {
 // TestBuildIndexRefreshIgnoresCache 检查强制刷新会绕过缓存重扫
 // TestBuildIndexRefreshIgnoresCache checks that a forced refresh bypasses the cache and rescans
 func TestBuildIndexRefreshIgnoresCache(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 
 	service := NewSearchService()
@@ -593,7 +593,7 @@ func TestBuildIndexRefreshIgnoresCache(t *testing.T) {
 // A shallow index carries no inner container names, so passing it off as deep makes .menu lookups come up
 // empty with nothing to indicate why
 func TestCacheIsNotSharedAcrossDepth(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 
 	service := NewSearchService()
@@ -627,7 +627,7 @@ func TestCacheIsNotSharedAcrossDepth(t *testing.T) {
 // TestLoadCachedIndexRejectsStaleCache checks that one changed file makes the whole cache refuse to load
 // Half a cache looks perfectly normal while returning less, so a rebuild is the safer answer
 func TestLoadCachedIndexRejectsStaleCache(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
@@ -663,7 +663,7 @@ func TestLoadCachedIndexRejectsStaleCache(t *testing.T) {
 // A cache file can be half-written, truncated by antivirus, or hand-edited, and the decoder must not take
 // the application down with it
 func TestLoadCachedIndexSurvivesCorruptCache(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
@@ -715,7 +715,7 @@ func TestLoadCachedIndexSurvivesCorruptCache(t *testing.T) {
 // TestClearCacheRemovesCacheFile 检查清除缓存后不再能从磁盘恢复
 // TestClearCacheRemovesCacheFile checks that nothing can be restored from disk after the cache is cleared
 func TestClearCacheRemovesCacheFile(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
@@ -807,7 +807,7 @@ func TestSearchWithoutIndexIsEmpty(t *testing.T) {
 // TestBuildIndexRejectsBadRoot 检查根目录不存在或不是目录时报错而不是建出空索引
 // TestBuildIndexRejectsBadRoot checks that a missing or non-directory root errors instead of producing an empty index
 func TestBuildIndexRejectsBadRoot(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	service := NewSearchService()
 
 	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: ""}); err == nil {
@@ -829,7 +829,7 @@ func TestBuildIndexRejectsBadRoot(t *testing.T) {
 // TestBuildIndexOnEmptyDirectory 检查空目录建出一个可用但为空的索引
 // TestBuildIndexOnEmptyDirectory checks that an empty directory yields a usable but empty index
 func TestBuildIndexOnEmptyDirectory(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	service := NewSearchService()
 	stats, err := service.BuildIndex(context.Background(), IndexOptions{Root: t.TempDir()})
 	if err != nil {
@@ -877,7 +877,7 @@ func TestCancelIndexKeepsPreviousIndex(t *testing.T) {
 // TestCancelIndexBeforeBuildDoesNotLeak checks that cancelling while idle does not bleed into the next build
 // The frontend can easily fire a cancel with no build running, and that click must not void the build that follows
 func TestCancelIndexBeforeBuildDoesNotLeak(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 	service := NewSearchService()
 	service.CancelIndex()
@@ -911,7 +911,7 @@ func TestClearIndexDropsResults(t *testing.T) {
 // TestBuildIndexEmitsProgress 检查构建过程会推送进度并以结束事件收尾
 // TestBuildIndexEmitsProgress checks that a build pushes progress and finishes with a completion event
 func TestBuildIndexEmitsProgress(t *testing.T) {
-	isolatedCacheDir(t)
+	isolatedConfigDir(t)
 	dir := testDataDir(t)
 	service := NewSearchService()
 

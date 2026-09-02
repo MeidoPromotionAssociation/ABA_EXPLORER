@@ -57,6 +57,16 @@ fileAssociations:
     iconName: ct
     role: Editor
 
+# Custom URL Protocols
+# 供外部工具用 aba-explorer://open?path=<URL 编码的绝对路径> 唤起本程序打开容器或内容表，
+# 开启单实例后会转交给已在运行的窗口，不会堆积进程；只接受 .aba/.asset_bg/.asset_scene/.ct
+# Lets external tools invoke this application via aba-explorer://open?path=<URL-encoded absolute path> to open a
+# container or catalog; with single instance on the request is handed to the running window instead of spawning
+# another process, and only .aba/.asset_bg/.asset_scene/.ct are accepted
+protocols:
+  - scheme: aba-explorer
+    description: ABA EXPLORER Protocol
+
 
 # Other data
 other:

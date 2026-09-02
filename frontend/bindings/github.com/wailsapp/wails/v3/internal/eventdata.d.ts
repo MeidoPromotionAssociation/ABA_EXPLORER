@@ -14,6 +14,7 @@ declare module "@wailsio/runtime" {
         interface CustomEvents {
             "explorer:file-dropped": string;
             "explorer:index-progress": internal$0.IndexProgress;
+            "explorer:protocol-open": string;
         }
     }
 }

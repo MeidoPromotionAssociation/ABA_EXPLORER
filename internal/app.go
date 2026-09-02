@@ -46,7 +46,7 @@ type App struct {
 func NewApp() *App {
 	return &App{
 		fileType:    &KCESService.FileTypeService{},
-		startupFile: commandLineFile(os.Args[1:]),
+		startupFile: OpenTargetFromArgs(os.Args[1:]),
 	}
 }
 
@@ -60,18 +60,8 @@ func (a *App) SetApplication(app *application.App) {
 	a.app = app
 }
 
-// commandLineFile 从命令行参数取出文件路径，供文件关联双击打开使用
-// commandLineFile picks a file path out of the command line for file-association double-click opens
-func commandLineFile(args []string) string {
-	for _, arg := range args {
-		if arg != "" && !strings.HasPrefix(arg, "-") {
-			return arg
-		}
-	}
-	return ""
-}
-
-// StartupFile 返回通过文件关联传入的文件路径 / StartupFile returns the file path passed in through a file association
+// StartupFile 返回启动时要求打开的路径，可能来自文件关联双击或协议唤起
+// StartupFile returns the path the launch asked to open, either from an association double-click or a protocol invocation
 func (a *App) StartupFile() string {
 	return a.startupFile
 }

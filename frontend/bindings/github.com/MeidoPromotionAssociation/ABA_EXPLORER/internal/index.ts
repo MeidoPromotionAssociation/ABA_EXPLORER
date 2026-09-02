@@ -38,9 +38,11 @@ export {
     IndexStats,
     PackResult,
     PathInfo,
+    ProtocolStatus,
     SearchHit,
     SearchQuery,
     SearchResult,
+    Settings,
     UnpackResult,
     UnpackedFile,
     VersionCheckResult

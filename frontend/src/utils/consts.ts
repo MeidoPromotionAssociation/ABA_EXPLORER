@@ -15,6 +15,11 @@ export const RetryInterval = 1 * 60 * 60 * 1000; // 重试检查更新间隔 1 �
 
 export const SettingCheckUpdateKey = "SettingCheckUpdateKey"; // 检查更新设置的键
 
+// 后端推送的事件名，必须与 main.go 的 RegisterEvent 和 internal/protocol.go 的常量一字不差
+// Event names pushed by the backend, which must match RegisterEvent in main.go and the constant in internal/protocol.go exactly
+export const FileDroppedEvent = "explorer:file-dropped";
+export const ProtocolOpenEvent = "explorer:protocol-open";
+
 // 文件对话框过滤器：Wails 的 AddFilter 用分号分隔多个通配符
 // File dialog filters: Wails AddFilter separates multiple wildcards with semicolons
 export const ContainerFilter = "*.aba;*.asset_bg;*.asset_scene";

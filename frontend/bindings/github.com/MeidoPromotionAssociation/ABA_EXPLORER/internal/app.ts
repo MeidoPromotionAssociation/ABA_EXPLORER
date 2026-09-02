@@ -55,6 +55,16 @@ export function GetAppVersion(): $CancellablePromise<string> {
 }
 
 /**
+ * GetSettings 返回当前的启动期配置，供设置页展示
+ * GetSettings returns the current startup configuration for the settings page
+ */
+export function GetSettings(): $CancellablePromise<$models.Settings> {
+    return $Call.ByID(3483909715).then(($result: any) => {
+        return $$createType2($result);
+    });
+}
+
+/**
  * IsModEditorAvailable 判断系统上是否注册过 KCES MOD EDITOR 的协议
  * 协议由安装器写入，直接解压的绿色版不会注册，此时按钮点了不会有任何反应，需要提前告诉用户
  * IsModEditorAvailable reports whether the KCES MOD EDITOR protocol is registered on this system
@@ -80,7 +90,20 @@ export function OpenInModEditor(path: string): $CancellablePromise<void> {
  */
 export function PreviewFile(path: string): $CancellablePromise<$models.FilePreview | null> {
     return $Call.ByID(1920937600, path).then(($result: any) => {
-        return $$createType3($result);
+        return $$createType4($result);
+    });
+}
+
+/**
+ * ProtocolStatus 返回协议名与注册状态
+ * 协议由安装器写入，直接解压的绿色版不会注册，此时外部工具唤起不会有任何反应，需要在设置页说清楚
+ * ProtocolStatus returns the scheme name and its registration state
+ * The installer writes the registration, so a portable copy has none and an external invocation would silently
+ * do nothing, which the settings page has to spell out
+ */
+export function ProtocolStatus(): $CancellablePromise<$models.ProtocolStatus> {
+    return $Call.ByID(189603572).then(($result: any) => {
+        return $$createType5($result);
     });
 }
 
@@ -126,7 +149,16 @@ export function SelectPathToSave(filetype: string, fileDisplayName: string, sugg
 }
 
 /**
- * StartupFile 返回通过文件关联传入的文件路径 / StartupFile returns the file path passed in through a file association
+ * SetSingleInstance 切换单实例开关，下次启动生效
+ * SetSingleInstance toggles single instance and takes effect on the next launch
+ */
+export function SetSingleInstance(enabled: boolean): $CancellablePromise<void> {
+    return $Call.ByID(1652789197, enabled);
+}
+
+/**
+ * StartupFile 返回启动时要求打开的路径，可能来自文件关联双击或协议唤起
+ * StartupFile returns the path the launch asked to open, either from an association double-click or a protocol invocation
  */
 export function StartupFile(): $CancellablePromise<string> {
     return $Call.ByID(3100566529);
@@ -138,7 +170,7 @@ export function StartupFile(): $CancellablePromise<string> {
  */
 export function StatPath(path: string): $CancellablePromise<$models.PathInfo> {
     return $Call.ByID(411158375, path).then(($result: any) => {
-        return $$createType4($result);
+        return $$createType6($result);
     });
 }
 
@@ -152,6 +184,8 @@ export function WriteTextFile(path: string, content: string): $CancellablePromis
 // Private type creation functions
 const $$createType0 = $models.VersionCheckResult.createFrom;
 const $$createType1 = COM3D2$0.FileInfo.createFrom;
-const $$createType2 = $models.FilePreview.createFrom;
-const $$createType3 = $Create.Nullable($$createType2);
-const $$createType4 = $models.PathInfo.createFrom;
+const $$createType2 = $models.Settings.createFrom;
+const $$createType3 = $models.FilePreview.createFrom;
+const $$createType4 = $Create.Nullable($$createType3);
+const $$createType5 = $models.ProtocolStatus.createFrom;
+const $$createType6 = $models.PathInfo.createFrom;

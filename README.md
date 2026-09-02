@@ -25,6 +25,7 @@ Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/M
 - **Preview**: Texture2D and Sprite are decoded directly into images, text assets are shown as UTF-8
 - **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF/GLB, AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting
 - **Hand off to the editor**: unpacked formats that have an editing page, such as `.menuassets`, can be opened in [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) through the `kces-mod-editor://` protocol via a button or a double click. Please install that software first
+- **Invoked from outside**: other programs can request a file with `aba-explorer://open?path=<URL-encoded absolute path>`, and the protocol only accepts `.aba`, `.asset_bg`, `.asset_scene` and `.ct`. Single instance is a switch on the settings page: with it on every invocation is handed to the window already running, with it off each one opens another window so two containers can sit side by side
 - Drag and drop, opening through file associations, the `Ctrl+O` shortcut, and dark mode following the system
 - Full multi-language support. If you would like to add a language, please contribute through Issues or Pull Requests.
 
@@ -125,6 +126,7 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - **预览**：Texture2D 与 Sprite 直接解码成图片，文本资源按 UTF-8 展示
 - **转换**：Texture2D/Sprite → PNG，Mesh/AnimationClip/Model → glTF/GLB，AudioClip → 原始音频，`.nei` → CSV，以及各 KCES 结构化格式 → JSON，支持批量并逐条报告结果
 - **交给编辑器**：解包产物里 `.menuassets` 这类有编辑页面的格式，可以按钮或双击通过 `kces-mod-editor://` 协议交给 [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) 打开，请先安装该软件
+- **外部唤起**：其他程序可以用 `aba-explorer://open?path=<URL 编码的绝对路径>` 请求打开一个文件，协议只接受 `.aba`、`.asset_bg`、`.asset_scene` 与 `.ct`。单实例是设置页里的开关：开启时每次唤起都转交给已在运行的窗口，关闭时各开一个新窗口，方便并排对比两个容器
 - 文件拖放、文件关联打开、`Ctrl+O` 快捷键、深色模式跟随系统
 - 拥有完整的多国语言支持，如果您想添加语言，请通过 Issues 或 Pull Request 为我们贡献。
 
@@ -225,6 +227,7 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - **プレビュー**：Texture2D と Sprite は直接画像にデコードし、テキストリソースは UTF-8 として表示します
 - **変換**：Texture2D/Sprite → PNG、Mesh/AnimationClip/Model → glTF/GLB、AudioClip → 生の音声、`.nei` → CSV、および各 KCES 構造化フォーマット → JSON。一括処理に対応し、結果を項目ごとに報告します
 - **エディターへ引き渡す**：アンパック結果のうち `.menuassets` のように編集ページを持つフォーマットは、ボタンまたはダブルクリックで `kces-mod-editor://` プロトコル経由で [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) で開けます。事前に当該ソフトウェアをインストールしてください
+- **外部からの呼び出し**：他のプログラムは `aba-explorer://open?path=<URL エンコードした絶対パス>` でファイルを開くよう要求できます。プロトコルが受け付けるのは `.aba`・`.asset_bg`・`.asset_scene`・`.ct` のみです。単一インスタンスは設定ページのスイッチで、有効なら呼び出しはすべて実行中のウィンドウに引き渡され、無効ならそれぞれ新しいウィンドウが開くため 2 つのコンテナを並べて比較できます
 - ファイルのドラッグ＆ドロップ、ファイル関連付けからの起動、`Ctrl+O` ショートカット、システムに追従するダークモード
 - 完全な多言語対応を備えています。言語を追加したい場合は、Issues または Pull Request でぜひご協力ください。
 

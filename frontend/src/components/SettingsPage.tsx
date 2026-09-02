@@ -1,5 +1,5 @@
 // frontend/src/components/SettingsPage.tsx
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Button,
     Card,
@@ -12,6 +12,7 @@ import {
     Segmented,
     Space,
     Switch,
+    Tag,
     Tooltip,
     Typography,
 } from "antd";
@@ -36,6 +37,8 @@ import {
 } from "../utils/consts";
 import {NewVersionAvailableKey} from "../utils/LocalStorageKeys";
 import {resolveUiLanguage} from "../utils/i18n";
+import {appMessage as message, describeError} from "../utils/feedback";
+import {App as AppService} from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 
 const SettingsPage: React.FC = () => {
     const {t, i18n} = useTranslation();
@@ -44,10 +47,51 @@ const SettingsPage: React.FC = () => {
     const [themeMode, setThemeMode] = useThemeMode();
     const [themeColor, setThemeColor] = useThemeColor();
 
+    // 单实例存在后端配置文件里而不是 localStorage：它要在窗口创建之前就被读到
+    // Single instance lives in the backend settings file rather than localStorage because it is read before the window exists
+    const [singleInstance, setSingleInstance] = useState(false);
+    const [protocolScheme, setProtocolScheme] = useState("");
+    const [protocolRegistered, setProtocolRegistered] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const [settings, protocol] = await Promise.all([
+                    AppService.GetSettings(),
+                    AppService.ProtocolStatus(),
+                ]);
+                if (cancelled) return;
+                setSingleInstance(settings.singleInstance);
+                setProtocolScheme(protocol.scheme);
+                setProtocolRegistered(protocol.registered);
+            } catch (error) {
+                console.error("read startup settings failed:", error);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    // 开关先跟着点击动，写失败再退回去：设置页的开关卡住不动比短暂闪回更让人困惑
+    // The switch follows the click first and reverts on failure, since a frozen switch confuses more than a brief flip back
+    const handleSingleInstanceChange = async (checked: boolean) => {
+        setSingleInstance(checked);
+        try {
+            await AppService.SetSingleInstance(checked);
+            message.success(t('SettingsPage.single_instance_restart'));
+        } catch (error) {
+            setSingleInstance(!checked);
+            message.error(describeError(error));
+        }
+    };
+
     const [checkUpdates, setCheckUpdates] = useState(() => {
         const saved = localStorage.getItem(SettingCheckUpdateKey);
         return saved ? JSON.parse(saved) : true;
     });
+
 
     const handleUpdateCheck = (checked: boolean) => {
         setCheckUpdates(checked);
@@ -231,6 +275,72 @@ const SettingsPage: React.FC = () => {
                                             >
                                                 {item.title}
                                             </Button>
+                                        )
+                                    ]}
+                                >
+                                    <Space>
+                                        <span>{item.title}</span>
+                                        {item.tooltip ? (
+                                            <Tooltip title={item.tooltip}>
+                                                <QuestionCircleOutlined style={{color: '#aaa'}}/>
+                                            </Tooltip>
+                                        ) : null}
+                                    </Space>
+                                </List.Item>
+                            )}
+                        />
+                    </Card>
+                </Col>
+
+                {/* 启动与集成区域：这些设置在窗口创建之前就要读到，因此存在后端配置文件里 */}
+                {/* Launch and integration: these are read before the window exists, so they live in the backend settings file */}
+                <Col xs={24} lg={12}>
+                    <Card
+                        title={<Typography.Title level={5}>{t('SettingsPage.launch_settings')}</Typography.Title>}
+                        style={{borderRadius: 8}}
+                    >
+                        <List
+                            split={false}
+                            dataSource={[
+                                {
+                                    title: t('SettingsPage.single_instance'),
+                                    tooltip: t('SettingsPage.single_instance_tip'),
+                                    checked: singleInstance,
+                                    onChange: handleSingleInstanceChange,
+                                    type: 'switch'
+                                },
+                                {
+                                    title: t('SettingsPage.url_protocol'),
+                                    tooltip: t('SettingsPage.url_protocol_tip', {scheme: protocolScheme || 'aba-explorer'}),
+                                    type: 'protocol'
+                                },
+                            ]}
+                            renderItem={(item: any) => (
+                                <List.Item
+                                    style={{padding: '16px 0'}}
+                                    actions={[
+                                        item.type === 'switch' ? (
+                                            <Switch
+                                                key="switch"
+                                                checked={item.checked}
+                                                onChange={item.onChange}
+                                            />
+                                        ) : (
+                                            <Space key="protocol" wrap>
+                                                {/* 复制出来的是可直接补上路径的前缀，外部工具接的就是这一段 */}
+                                                {/* Copying yields the prefix a path can be appended to, which is what external tools consume */}
+                                                <Typography.Text
+                                                    code
+                                                    copyable={protocolScheme ? {text: `${protocolScheme}://open?path=`} : false}
+                                                >
+                                                    {protocolScheme ? `${protocolScheme}://` : '-'}
+                                                </Typography.Text>
+                                                {/* 只在确知没注册时报警：非 Windows 平台查不到注册情况，不能反过来断言已注册 */}
+                                                {/* Warning only when we know it is missing: registration is unqueryable outside Windows, so the opposite cannot be claimed */}
+                                                {protocolScheme && !protocolRegistered ? (
+                                                    <Tag color="orange">{t('SettingsPage.url_protocol_unregistered')}</Tag>
+                                                ) : null}
+                                            </Space>
                                         )
                                     ]}
                                 >

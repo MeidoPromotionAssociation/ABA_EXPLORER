@@ -50,7 +50,7 @@ func (a *App) CanOpenInModEditor(path string) bool {
 // IsModEditorAvailable reports whether the KCES MOD EDITOR protocol is registered on this system
 // The installer writes the registration, so a portable copy has none and the button would silently do nothing
 func (a *App) IsModEditorAvailable() bool {
-	return modEditorProtocolRegistered(modEditorScheme)
+	return protocolRegistered(modEditorScheme)
 }
 
 // modEditorOpenURL 拼出请求编辑器打开某个绝对路径的协议 URL

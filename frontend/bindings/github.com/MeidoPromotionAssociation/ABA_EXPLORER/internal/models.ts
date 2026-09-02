@@ -1641,6 +1641,42 @@ export class PathInfo {
 }
 
 /**
+ * ProtocolStatus 是自定义协议的当前状态，设置页用它说明协议现在能不能用
+ * ProtocolStatus is the current state of the custom protocol so the settings page can explain whether it works
+ */
+export class ProtocolStatus {
+    /**
+     * 协议名，不含 :// / Scheme name without ://
+     */
+    "scheme": string;
+
+    /**
+     * 系统上是否注册过 / Whether it is registered on this system
+     */
+    "registered": boolean;
+
+    /** Creates a new ProtocolStatus instance. */
+    constructor($$source: Partial<ProtocolStatus> = {}) {
+        if (!("scheme" in $$source)) {
+            this["scheme"] = "";
+        }
+        if (!("registered" in $$source)) {
+            this["registered"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ProtocolStatus instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ProtocolStatus {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ProtocolStatus($$parsedSource as Partial<ProtocolStatus>);
+    }
+}
+
+/**
  * SearchHit 是一条命中记录 / SearchHit is one matched record
  */
 export class SearchHit {
@@ -1834,6 +1870,40 @@ export class SearchResult {
             $$parsedSource["hits"] = $$createField0_0($$parsedSource["hits"]);
         }
         return new SearchResult($$parsedSource as Partial<SearchResult>);
+    }
+}
+
+/**
+ * Settings 是必须在应用启动前就读到的配置
+ * 单实例要在 application.New 时就决定，那时前端还没起来、localStorage 读不到，所以这类设置只能存文件
+ * Settings holds configuration that must be known before the application starts
+ * Single instance is decided at application.New, before the frontend exists and localStorage is reachable,
+ * so settings of this kind have to live in a file
+ */
+export class Settings {
+    /**
+     * SingleInstance 为 true 时只允许一个实例运行，协议唤起与文件关联都转交给已有窗口
+     * 关闭后每次唤起都会开新窗口，冷启动仍会打开目标文件
+     * When true only one instance runs and protocol or association opens are handed to the existing window
+     * When off each invocation opens another window, which still opens the target file on the cold-start path
+     */
+    "singleInstance": boolean;
+
+    /** Creates a new Settings instance. */
+    constructor($$source: Partial<Settings> = {}) {
+        if (!("singleInstance" in $$source)) {
+            this["singleInstance"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Settings instance from a string or object.
+     */
+    static createFrom($$source: any = {}): Settings {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Settings($$parsedSource as Partial<Settings>);
     }
 }
 
