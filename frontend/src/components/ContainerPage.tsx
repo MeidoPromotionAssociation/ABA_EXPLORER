@@ -17,6 +17,7 @@ import {BlockTable, DirectoryTable} from "./container/StructureTables";
 import SerializedFileList from "./container/SerializedFileList";
 import {setCtPath, setUnpackedDir, useWorkspace} from "../hooks/workspace";
 import useFileOpener from "../hooks/fileOpener";
+import {useProvideOpenAction} from "../hooks/openAction";
 import {AbaTabKey} from "../utils/LocalStorageKeys";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {baseName, formatNumber} from "../utils/format";
@@ -31,7 +32,7 @@ const ContainerPage: React.FC = () => {
     const navigate = useNavigate();
     const {modal} = AntdApp.useApp();
     const {containerPath} = useWorkspace();
-    const {selectAndOpen} = useFileOpener();
+    const {selectContainer} = useFileOpener();
     const [overview, setOverview] = useState<AbaOverview | null>(null);
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -57,6 +58,9 @@ const ContainerPage: React.FC = () => {
     useEffect(() => {
         void load();
     }, [load]);
+
+    // 本页的"打开"就是选一个容器
+    useProvideOpenAction(t("ContainerPage.open"), selectContainer);
 
     /** confirmOverwrite 目标已存在时询问是否覆盖，不存在时直接放行 */
     const confirmOverwrite = async (path: string, title: string): Promise<boolean> => {
@@ -121,8 +125,8 @@ const ContainerPage: React.FC = () => {
             <EmptyState
                 description={t("ContainerPage.no_file")}
                 hint={t("Common.drop_hint")}
-                actionLabel={t("NavBar.open_file")}
-                onAction={selectAndOpen}
+                actionLabel={t("ContainerPage.open")}
+                onAction={selectContainer}
             />
         );
     }

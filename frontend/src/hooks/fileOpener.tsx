@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import {App as AppService} from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 import {setContainerPath, setCtPath, setUnpackedDir} from "./workspace";
-import {AnyKcesFilter, isContainerPath, isCtPath} from "../utils/consts";
+import {AnyKcesFilter, ContainerFilter, CtFilter, isContainerPath, isCtPath} from "../utils/consts";
 import {appMessage as message, describeError} from "../utils/feedback";
 
 /**
@@ -52,16 +52,36 @@ export function useFileOpener() {
         message.warning(t("Common.unsupported_file", {path}));
     }, [navigate, t]);
 
-    const selectAndOpen = useCallback(async (): Promise<void> => {
+    /**
+     * selectWithFilter 用指定过滤器选一个文件再交给 openPath
+     * 仍然过 openPath 而不是直接写工作区：过滤器只是对话框的默认视图，
+     * 用户手打文件名能绕过它，按内容判定后落到正确的页面比信任扩展名可靠
+     */
+    const selectWithFilter = useCallback(async (filter: string, label: string): Promise<void> => {
         try {
-            const path = await AppService.SelectFile(AnyKcesFilter, t("Common.kces_files"));
+            const path = await AppService.SelectFile(filter, label);
             if (path) await openPath(path);
         } catch (error) {
             message.error(describeError(error));
         }
-    }, [openPath, t]);
+    }, [openPath]);
 
-    return {openPath, selectAndOpen};
+    const selectAndOpen = useCallback(
+        () => selectWithFilter(AnyKcesFilter, t("Common.kces_files")),
+        [selectWithFilter, t]
+    );
+
+    const selectContainer = useCallback(
+        () => selectWithFilter(ContainerFilter, t("Common.container_files")),
+        [selectWithFilter, t]
+    );
+
+    const selectCt = useCallback(
+        () => selectWithFilter(CtFilter, t("Common.ct_files")),
+        [selectWithFilter, t]
+    );
+
+    return {openPath, selectAndOpen, selectContainer, selectCt};
 }
 
 export default useFileOpener;

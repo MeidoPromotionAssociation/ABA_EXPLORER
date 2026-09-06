@@ -1,6 +1,6 @@
 {
   "Common": {
-    "open_file_shortcut": "Open file (Ctrl+O)",
+    "open_shortcut": "{{action}} (Ctrl+O)",
     "reveal": "Show in file manager",
     "reload": "Reload",
     "yes": "Yes",
@@ -66,8 +66,9 @@
     "choose_unpacked_dir": "Choose an unpacked directory"
   },
   "ContainerPage": {
+    "open": "Open container",
     "no_file": "No container is open yet",
-    "load_failed": "This container could not be parsed",
+    "load_failed":"This container could not be parsed",
     "kind": "Kind",
     "signature": "Signature",
     "format_version": "UnityFS version",
@@ -150,8 +151,9 @@
     "ref_type": "Ref type"
   },
   "CtPage": {
+    "open": "Open content table",
     "no_file": "No content table is open yet",
-    "load_failed": "This content table could not be parsed",
+    "load_failed":"This content table could not be parsed",
     "catalog_error": "Decoding the catalog failed, so only the virtual file table is shown below",
     "catalog_name": "Catalog name",
     "kind": "Catalog kind",

@@ -9,6 +9,7 @@ import {
 } from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 import type {PackResult} from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import {setContainerPath, setCtPath, setUnpackedDir, useWorkspace} from "../hooks/workspace";
+import {useProvideOpenAction} from "../hooks/openAction";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {baseName, dirName, joinPath} from "../utils/format";
 
@@ -48,7 +49,7 @@ const PackPage: React.FC = () => {
         void syncSuggestedName(unpackedDir);
     }, [unpackedDir, syncSuggestedName]);
 
-    const chooseDir = async () => {
+    const chooseDir = useCallback(async () => {
         try {
             const dir = await AppService.SelectDirectory(t("PackPage.choose_dir"));
             if (!dir) return;
@@ -58,7 +59,10 @@ const PackPage: React.FC = () => {
         } catch (error) {
             message.error(describeError(error));
         }
-    };
+    }, [syncSuggestedName, t]);
+
+    // 本页的"打开"就是选要打包的源目录
+    useProvideOpenAction(t("PackPage.choose_dir"), chooseDir);
 
     /** confirmOverwrite 目标文件已存在时询问，两个输出中任一存在都要提示 */
     const confirmOverwrite = async (paths: string[]): Promise<boolean> => {

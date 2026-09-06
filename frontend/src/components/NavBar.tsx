@@ -12,6 +12,7 @@ import {
     UnorderedListOutlined,
 } from "@ant-design/icons";
 import {Browser} from "@wailsio/runtime";
+import {useOpenAction} from "../hooks/openAction";
 import {GitHubReleaseUrl} from "../utils/consts";
 import {useVersionCheck} from "../utils/CheckUpdate";
 
@@ -25,6 +26,9 @@ interface NavBarProps {
  * NavBar 顶部导航栏
  * 菜单 key 与路由路径一致，首页用空字符串
  * Ctrl+O 打开文件，与 KCES MOD EDITOR 的快捷键保持一致
+ *
+ * 打开按钮的含义跟随当前页面：容器页是选容器，解包产物页是选目录，等等。
+ * 页面通过 useProvideOpenAction 登记自己的动作，没有登记的页面用 onSelectFile 这个通用入口
  */
 const NavBar: React.FC<NavBarProps> = ({onSelectFile}) => {
     const {t} = useTranslation();
@@ -34,17 +38,21 @@ const NavBar: React.FC<NavBarProps> = ({onSelectFile}) => {
     const selectedKey = location.pathname.substring(1);
 
     const hasUpdate = useVersionCheck();
+    const openAction = useOpenAction();
+
+    const openLabel = openAction?.label ?? t("NavBar.open_file");
+    const runOpen = openAction ? openAction.run : onSelectFile;
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
                 event.preventDefault();
-                onSelectFile?.();
+                void runOpen?.();
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [onSelectFile]);
+    }, [runOpen]);
 
     const menuItems = [
         {key: "", icon: <HomeOutlined/>, label: t("NavBar.home")},
@@ -90,9 +98,9 @@ const NavBar: React.FC<NavBarProps> = ({onSelectFile}) => {
                 />
             </div>
             <div style={{flexShrink: 0, whiteSpace: "nowrap", marginLeft: 16}}>
-                <Tooltip title={t("Common.open_file_shortcut")}>
-                    <Button type="primary" onClick={onSelectFile}>
-                        {t("NavBar.open_file")}
+                <Tooltip title={t("Common.open_shortcut", {action: openLabel})}>
+                    <Button type="primary" onClick={() => void runOpen?.()}>
+                        {openLabel}
                     </Button>
                 </Tooltip>
             </div>

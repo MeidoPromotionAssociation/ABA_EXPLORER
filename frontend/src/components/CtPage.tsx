@@ -15,6 +15,7 @@ import ExtensionLists from "./ct/ExtensionLists";
 import VirtualFileTable from "./ct/VirtualFileTable";
 import {setCtPath, useWorkspace} from "../hooks/workspace";
 import useFileOpener from "../hooks/fileOpener";
+import {useProvideOpenAction} from "../hooks/openAction";
 import {CtTabKey} from "../utils/LocalStorageKeys";
 import {CtFilter, JsonFilter} from "../utils/consts";
 import {appMessage as message, describeError} from "../utils/feedback";
@@ -29,7 +30,7 @@ const CtPage: React.FC = () => {
     const {t} = useTranslation();
     const {modal} = AntdApp.useApp();
     const {ctPath} = useWorkspace();
-    const {selectAndOpen} = useFileOpener();
+    const {selectCt} = useFileOpener();
     const [overview, setOverview] = useState<CtOverview | null>(null);
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -55,6 +56,9 @@ const CtPage: React.FC = () => {
     useEffect(() => {
         void load();
     }, [load]);
+
+    // 本页的"打开"就是选一个内容表
+    useProvideOpenAction(t("CtPage.open"), selectCt);
 
     const decodedNames = useMemo(() => {
         if (!overview) return [];
@@ -138,8 +142,8 @@ const CtPage: React.FC = () => {
             <EmptyState
                 description={t("CtPage.no_file")}
                 hint={t("Common.drop_hint")}
-                actionLabel={t("NavBar.open_file")}
-                onAction={selectAndOpen}
+                actionLabel={t("CtPage.open")}
+                onAction={selectCt}
             />
         );
     }

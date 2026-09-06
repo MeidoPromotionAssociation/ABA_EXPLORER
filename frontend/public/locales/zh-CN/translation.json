@@ -1,6 +1,6 @@
 {
   "Common": {
-    "open_file_shortcut": "打开文件 (Ctrl+O)",
+    "open_shortcut": "{{action}} (Ctrl+O)",
     "reveal": "在文件管理器中显示",
     "reload": "重新加载",
     "yes": "是",
@@ -66,6 +66,7 @@
     "choose_unpacked_dir": "选择解包目录"
   },
   "ContainerPage": {
+    "open": "打开容器",
     "no_file": "还没有打开容器",
     "load_failed": "无法解析这个容器",
     "kind": "种类",
@@ -150,6 +151,7 @@
     "ref_type": "引用类型"
   },
   "CtPage": {
+    "open": "打开内容表",
     "no_file": "还没有打开内容表",
     "load_failed": "无法解析这个内容表",
     "catalog_error": "catalog 解码失败，下面只展示虚拟文件表",

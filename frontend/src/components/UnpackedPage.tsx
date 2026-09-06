@@ -30,6 +30,7 @@ import EmptyState from "./common/EmptyState";
 import VirtualTable, {VirtualColumn} from "./common/VirtualTable";
 import FilePreviewPanel from "./unpacked/FilePreviewPanel";
 import {setUnpackedDir, useWorkspace} from "../hooks/workspace";
+import {useProvideOpenAction} from "../hooks/openAction";
 import {useDebouncedValue} from "../hooks/useDebouncedValue";
 import {openInModEditor} from "../hooks/modEditor";
 import {TargetOrder, typeColor} from "../utils/consts";
@@ -82,6 +83,18 @@ const UnpackedPage: React.FC = () => {
     useEffect(() => {
         void load();
     }, [load]);
+
+    const chooseDir = useCallback(async () => {
+        try {
+            const dir = await AppService.SelectDirectory(t("UnpackedPage.choose_dir"));
+            if (dir) setUnpackedDir(dir);
+        } catch (error) {
+            message.error(describeError(error));
+        }
+    }, [t]);
+
+    // 本页的"打开"就是选一个解包目录
+    useProvideOpenAction(t("UnpackedPage.choose_dir"), chooseDir);
 
     const kindOptions = useMemo(() => {
         const counts = new Map<string, number>();
@@ -156,14 +169,7 @@ const UnpackedPage: React.FC = () => {
                 description={t("UnpackedPage.no_dir")}
                 hint={t("UnpackedPage.no_dir_hint")}
                 actionLabel={t("UnpackedPage.choose_dir")}
-                onAction={async () => {
-                    try {
-                        const dir = await AppService.SelectDirectory(t("UnpackedPage.choose_dir"));
-                        if (dir) setUnpackedDir(dir);
-                    } catch (error) {
-                        message.error(describeError(error));
-                    }
-                }}
+                onAction={chooseDir}
             />
         );
     }

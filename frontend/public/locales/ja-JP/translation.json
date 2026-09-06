@@ -1,6 +1,6 @@
 {
   "Common": {
-    "open_file_shortcut": "ファイルを開く (Ctrl+O)",
+    "open_shortcut": "{{action}} (Ctrl+O)",
     "reveal": "ファイルマネージャーで表示",
     "reload": "再読み込み",
     "yes": "はい",
@@ -66,8 +66,9 @@
     "choose_unpacked_dir": "展開ディレクトリを選択"
   },
   "ContainerPage": {
+    "open": "コンテナを開く",
     "no_file": "コンテナがまだ開かれていません",
-    "load_failed": "このコンテナを解析できません",
+    "load_failed":"このコンテナを解析できません",
     "kind": "種別",
     "signature": "シグネチャ",
     "format_version": "UnityFS バージョン",
@@ -150,8 +151,9 @@
     "ref_type": "参照種別"
   },
   "CtPage": {
+    "open": "コンテンツテーブルを開く",
     "no_file": "コンテンツテーブルがまだ開かれていません",
-    "load_failed": "このコンテンツテーブルを解析できません",
+    "load_failed":"このコンテンツテーブルを解析できません",
     "catalog_error": "catalog のデコードに失敗したため、仮想ファイル表のみ表示します",
     "catalog_name": "catalog 名",
     "kind": "catalog 種別",

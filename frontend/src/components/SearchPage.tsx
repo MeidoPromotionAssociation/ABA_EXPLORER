@@ -37,6 +37,7 @@ import type {
 } from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import VirtualTable, {VirtualColumn} from "./common/VirtualTable";
 import {setContainerPath, setCtPath} from "../hooks/workspace";
+import {useProvideOpenAction} from "../hooks/openAction";
 import {useDebouncedValue} from "../hooks/useDebouncedValue";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {formatNumber} from "../utils/format";
@@ -185,7 +186,7 @@ const SearchPage: React.FC = () => {
         void runSearch();
     }, [runSearch, stats?.ready, stats?.names]);
 
-    const chooseRoot = async () => {
+    const chooseRoot = useCallback(async () => {
         try {
             const directory = await AppService.SelectDirectory(t("SearchPage.choose_root"));
             if (!directory) return;
@@ -194,7 +195,10 @@ const SearchPage: React.FC = () => {
         } catch (error) {
             message.error(describeError(error));
         }
-    };
+    }, [t]);
+
+    // 本页的"打开"就是选索引根目录
+    useProvideOpenAction(t("SearchPage.choose_root"), chooseRoot);
 
     const buildIndex = async (refresh = false) => {
         if (!root) {
