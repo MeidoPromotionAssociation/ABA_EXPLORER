@@ -2,11 +2,6 @@
 import React, {useEffect, useState} from "react";
 import {Route, Routes} from "react-router-dom";
 import {App as AntdApp, ConfigProvider, Layout, theme} from "antd";
-import type {Locale} from "antd/es/locale";
-import zhCN from "antd/locale/zh_CN";
-import enUS from "antd/locale/en_US";
-import jaJP from "antd/locale/ja_JP";
-import koKR from "antd/locale/ko_KR";
 import {useTranslation} from "react-i18next";
 import {Events} from "@wailsio/runtime";
 import NavBar from "./components/NavBar";
@@ -21,7 +16,7 @@ import {DefaultThemeColor, useDarkMode, useThemeColor} from "./hooks/themeSwitch
 import useFileOpener from "./hooks/fileOpener";
 import {bindMessage} from "./utils/feedback";
 import {FileDroppedEvent, ProtocolOpenEvent} from "./utils/consts";
-import {AntdLocale, getAntdLocale, resolveUiLanguage} from "./utils/i18n";
+import {getAntdLocale} from "./utils/i18n";
 import {App as AppService} from "../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 import DisclaimerDialog from "./components/DisclaimerDialog.tsx";
 import {DisclaimerAgreedKey} from "./utils/LocalStorageKeys.ts";
