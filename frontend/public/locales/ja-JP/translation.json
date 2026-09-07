@@ -68,7 +68,7 @@
   "ContainerPage": {
     "open": "コンテナを開く",
     "no_file": "コンテナがまだ開かれていません",
-    "load_failed":"このコンテナを解析できません",
+    "load_failed": "このコンテナを解析できません",
     "kind": "種別",
     "signature": "シグネチャ",
     "format_version": "UnityFS バージョン",
@@ -153,7 +153,7 @@
   "CtPage": {
     "open": "コンテンツテーブルを開く",
     "no_file": "コンテンツテーブルがまだ開かれていません",
-    "load_failed":"このコンテンツテーブルを解析できません",
+    "load_failed": "このコンテンツテーブルを解析できません",
     "catalog_error": "catalog のデコードに失敗したため、仮想ファイル表のみ表示します",
     "catalog_name": "catalog 名",
     "kind": "catalog 種別",

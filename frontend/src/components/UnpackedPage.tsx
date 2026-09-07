@@ -1,18 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {
-    Button,
-    Card,
-    Checkbox,
-    Input,
-    Modal,
-    Select,
-    Skeleton,
-    Space,
-    Splitter,
-    Table,
-    Tag,
-    Typography,
-} from "antd";
+import {Button, Card, Checkbox, Input, Modal, Select, Skeleton, Space, Splitter, Table, Tag, Typography,} from "antd";
 import {InboxOutlined, SwapOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
 import {useNavigate} from "react-router-dom";

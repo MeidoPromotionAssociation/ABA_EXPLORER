@@ -68,7 +68,7 @@
   "ContainerPage": {
     "open": "컨테이너 열기",
     "no_file": "아직 컨테이너를 열지 않았습니다",
-    "load_failed":"이 컨테이너를 해석할 수 없습니다",
+    "load_failed": "이 컨테이너를 해석할 수 없습니다",
     "kind": "종류",
     "signature": "시그니처",
     "format_version": "UnityFS 버전",
@@ -153,7 +153,7 @@
   "CtPage": {
     "open": "콘텐츠 테이블 열기",
     "no_file": "아직 콘텐츠 테이블을 열지 않았습니다",
-    "load_failed":"이 콘텐츠 테이블을 해석할 수 없습니다",
+    "load_failed": "이 콘텐츠 테이블을 해석할 수 없습니다",
     "catalog_error": "catalog 디코딩에 실패해 가상 파일 표만 표시합니다",
     "catalog_name": "catalog 이름",
     "kind": "catalog 종류",

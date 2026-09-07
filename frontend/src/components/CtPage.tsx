@@ -234,7 +234,8 @@ const CtPage: React.FC = () => {
                                 label: (
                                     <Space size={6}>
                                         {t("CtPage.tab_extensions")}
-                                        <Tag style={{marginInlineEnd: 0}}>{formatNumber(overview.extensions.length)}</Tag>
+                                        <Tag
+                                            style={{marginInlineEnd: 0}}>{formatNumber(overview.extensions.length)}</Tag>
                                     </Space>
                                 ),
                                 children: <ExtensionLists lists={overview.extensions}/>,
@@ -248,7 +249,8 @@ const CtPage: React.FC = () => {
                                     </Space>
                                 ),
                                 children: (
-                                    <VirtualFileTable ctPath={ctPath} files={overview.files} decodedNames={decodedNames}/>
+                                    <VirtualFileTable ctPath={ctPath} files={overview.files}
+                                                      decodedNames={decodedNames}/>
                                 ),
                             },
                             {

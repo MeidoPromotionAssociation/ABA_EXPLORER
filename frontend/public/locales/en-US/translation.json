@@ -68,7 +68,7 @@
   "ContainerPage": {
     "open": "Open container",
     "no_file": "No container is open yet",
-    "load_failed":"This container could not be parsed",
+    "load_failed": "This container could not be parsed",
     "kind": "Kind",
     "signature": "Signature",
     "format_version": "UnityFS version",
@@ -153,7 +153,7 @@
   "CtPage": {
     "open": "Open content table",
     "no_file": "No content table is open yet",
-    "load_failed":"This content table could not be parsed",
+    "load_failed": "This content table could not be parsed",
     "catalog_error": "Decoding the catalog failed, so only the virtual file table is shown below",
     "catalog_name": "Catalog name",
     "kind": "Catalog kind",

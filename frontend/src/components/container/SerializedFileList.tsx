@@ -1,7 +1,9 @@
 import React from "react";
 import {Alert, Collapse, Descriptions, Empty, Table, Tag, Typography} from "antd";
 import {useTranslation} from "react-i18next";
-import type {AbaSerializedFile} from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
+import type {
+    AbaSerializedFile
+} from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import {formatBytes, formatNumber} from "../../utils/format";
 
 const {Text} = Typography;

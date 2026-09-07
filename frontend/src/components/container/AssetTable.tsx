@@ -8,7 +8,9 @@ import {
     AbaExplorerService,
     App as AppService,
 } from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
-import type {AbaSerializedFile} from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
+import type {
+    AbaSerializedFile
+} from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import {typeColor} from "../../utils/consts";
 import {AssetTableWidthsKey} from "../../utils/LocalStorageKeys";
 import {toBigInt} from "../../utils/bigint";

@@ -45,7 +45,8 @@ export const BlockTable: React.FC<{ blocks: AbaBlock[] }> = ({blocks}) => {
             title: t("StructureTables.compression"),
             width: "minmax(110px, 1fr)",
             sortValue: (row) => row.compression,
-            render: (row) => <Tag color={compressionColor(row.compression)} style={{marginInlineEnd: 0}}>{row.compression}</Tag>,
+            render: (row) => <Tag color={compressionColor(row.compression)}
+                                  style={{marginInlineEnd: 0}}>{row.compression}</Tag>,
         },
         {
             key: "compressedSize",
@@ -80,7 +81,8 @@ export const BlockTable: React.FC<{ blocks: AbaBlock[] }> = ({blocks}) => {
             width: "100px",
             align: "center",
             sortValue: (row) => (row.streamed ? 1 : 0),
-            render: (row) => (row.streamed ? <Tag color="orange" style={{marginInlineEnd: 0}}>{t("Common.yes")}</Tag> : ""),
+            render: (row) => (row.streamed ?
+                <Tag color="orange" style={{marginInlineEnd: 0}}>{t("Common.yes")}</Tag> : ""),
         },
         {
             key: "flags",

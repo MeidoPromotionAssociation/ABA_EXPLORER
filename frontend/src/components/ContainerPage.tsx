@@ -163,7 +163,8 @@ const ContainerPage: React.FC = () => {
             {loading && !overview ? (
                 <Skeleton active paragraph={{rows: 6}}/>
             ) : !overview ? (
-                <EmptyState description={t("ContainerPage.load_failed")} actionLabel={t("Common.reload")} onAction={load}/>
+                <EmptyState description={t("ContainerPage.load_failed")} actionLabel={t("Common.reload")}
+                            onAction={load}/>
             ) : (
                 <>
                     <ContainerOverview overview={overview}/>
@@ -189,7 +190,8 @@ const ContainerPage: React.FC = () => {
                                         <Tag style={{marginInlineEnd: 0}}>{formatNumber(overview.assetCount)}</Tag>
                                     </Space>
                                 ),
-                                children: <AssetTable containerPath={containerPath} serializedFiles={overview.serializedFiles}/>,
+                                children: <AssetTable containerPath={containerPath}
+                                                      serializedFiles={overview.serializedFiles}/>,
                             },
                             {
                                 key: "blocks",
@@ -206,7 +208,8 @@ const ContainerPage: React.FC = () => {
                                 label: (
                                     <Space size={6}>
                                         {t("ContainerPage.tab_directories")}
-                                        <Tag style={{marginInlineEnd: 0}}>{formatNumber(overview.directories.length)}</Tag>
+                                        <Tag
+                                            style={{marginInlineEnd: 0}}>{formatNumber(overview.directories.length)}</Tag>
                                     </Space>
                                 ),
                                 children: <DirectoryTable directories={overview.directories}/>,

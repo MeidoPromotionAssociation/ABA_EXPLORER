@@ -81,7 +81,8 @@ const ExtensionLists: React.FC<{ lists: CtExtensionNameList[] }> = ({lists}) => 
                     onChange={(event) => setSearch(event.target.value)}
                 />
                 {active && active.extension !== active.key && (
-                    <Text type="secondary">{t("ExtensionLists.extension_field", {value: active.extension || "-"})}</Text>
+                    <Text
+                        type="secondary">{t("ExtensionLists.extension_field", {value: active.extension || "-"})}</Text>
                 )}
             </Space>
             <div style={{flex: 1, minHeight: 0}}>

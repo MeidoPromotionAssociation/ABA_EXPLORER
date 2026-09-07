@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Button, Descriptions, Divider, Empty, Space, Spin, Tag, Typography, theme} from "antd";
+import {Button, Descriptions, Divider, Empty, Space, Spin, Tag, theme, Typography} from "antd";
 import {EditOutlined, FolderOpenOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
 import {
@@ -115,14 +115,22 @@ const FilePreviewPanel: React.FC<{ file: UnpackedFile | null }> = ({file}) => {
                 size="small"
                 column={1}
                 items={[
-                    {key: "name", label: t("FilePreviewPanel.name"), children: <Text copyable>{baseName(file.relPath)}</Text>},
+                    {
+                        key: "name",
+                        label: t("FilePreviewPanel.name"),
+                        children: <Text copyable>{baseName(file.relPath)}</Text>
+                    },
                     {
                         key: "kind",
                         label: t("FilePreviewPanel.kind"),
                         children: file.kind ? <Tag color={typeColor(file.kind)}>{file.kind}</Tag> : "-",
                     },
                     {key: "size", label: t("FilePreviewPanel.size"), children: formatBytes(file.size)},
-                    {key: "relPath", label: t("FilePreviewPanel.rel_path"), children: <Text type="secondary">{file.relPath}</Text>},
+                    {
+                        key: "relPath",
+                        label: t("FilePreviewPanel.rel_path"),
+                        children: <Text type="secondary">{file.relPath}</Text>
+                    },
                 ]}
             />
 
