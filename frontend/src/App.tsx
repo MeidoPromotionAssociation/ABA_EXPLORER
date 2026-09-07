@@ -21,20 +21,13 @@ import {DefaultThemeColor, useDarkMode, useThemeColor} from "./hooks/themeSwitch
 import useFileOpener from "./hooks/fileOpener";
 import {bindMessage} from "./utils/feedback";
 import {FileDroppedEvent, ProtocolOpenEvent} from "./utils/consts";
-import {resolveUiLanguage} from "./utils/i18n";
+import {AntdLocale, getAntdLocale, resolveUiLanguage} from "./utils/i18n";
 import {App as AppService} from "../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 import DisclaimerDialog from "./components/DisclaimerDialog.tsx";
 import {DisclaimerAgreedKey} from "./utils/LocalStorageKeys.ts";
 
 const {Content} = Layout;
 
-// antd 组件文案跟随界面语言，未覆盖的语言回落到英文
-const AntdLocales: Record<string, Locale> = {
-    "en-US": enUS,
-    "zh-CN": zhCN,
-    "ja-JP": jaJP,
-    "ko-KR": koKR,
-};
 
 // MessageBinder 把组件树内（可消费主题上下文）的 message 实例绑定到全局桥
 const MessageBinder: React.FC = () => {
@@ -58,14 +51,6 @@ const App: React.FC = () => {
         setShowDisclaimer(false);
         localStorage.setItem(DisclaimerAgreedKey, 'true');
     };
-
-    // 订阅语言变化，切换语言后重新解析 antd 的 locale
-    // Subscribing to language changes re-resolves the antd locale after a switch
-    useTranslation();
-
-    // antd 的 locale 键必须是实际有翻译的四个语言码，webview 报 en-GB 这类标签时要先收敛
-    // The antd locale key must be one of the four languages we ship, so tags such as en-GB are normalized first
-    const antdLocale = AntdLocales[resolveUiLanguage()] ?? enUS;
 
     // 通过文件关联启动时打开传入的文件
     useEffect(() => {
@@ -109,9 +94,12 @@ const App: React.FC = () => {
         };
     }, [openPath]);
 
+    // 订阅语言变化，切换语言后重新解析 antd 的 locale
+    useTranslation();
+
     return (
         <ConfigProvider
-            locale={antdLocale}
+            locale={getAntdLocale()}
             theme={{
                 algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
                 token: {colorPrimary: themeColor ?? DefaultThemeColor},
