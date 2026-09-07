@@ -351,6 +351,12 @@
     "unsupported": "KCES MOD EDITOR にはこの形式の編集ページがありません",
     "opened": "KCES MOD EDITOR に {{name}} を開くよう要求しました"
   },
+  "Disclaimer": {
+    "title": "免責事項",
+    "agree": "読んだ上で同意します",
+    "disagree": "同意せず終了",
+    "load_error": "免責事項の読み込みに失敗しました。後でもう一度お試しください。"
+  },
   "Infos": {
     "check_update_success_new_version_available": "更新の確認に成功しました。新しいバージョンがあります",
     "check_update_success_no_new_version": "更新の確認に成功しました。最新バージョンです"

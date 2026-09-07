@@ -351,6 +351,12 @@
     "unsupported": "KCES MOD EDITOR 没有这种格式的编辑页面",
     "opened": "已请求 KCES MOD EDITOR 打开 {{name}}"
   },
+  "Disclaimer": {
+    "title": "免责声明",
+    "agree": "我已阅读并同意",
+    "disagree": "不同意并退出",
+    "load_error": "免责声明加载失败，请稍后重试。"
+  },
   "Infos": {
     "check_update_success_new_version_available": "检查更新成功，有新版本可用",
     "check_update_success_no_new_version": "检查更新成功，当前已是最新版本"

@@ -1,5 +1,5 @@
 // App.tsx
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {Route, Routes} from "react-router-dom";
 import {App as AntdApp, ConfigProvider, Layout, theme} from "antd";
 import type {Locale} from "antd/es/locale";
@@ -23,13 +23,15 @@ import {bindMessage} from "./utils/feedback";
 import {FileDroppedEvent, ProtocolOpenEvent} from "./utils/consts";
 import {resolveUiLanguage} from "./utils/i18n";
 import {App as AppService} from "../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
+import DisclaimerDialog from "./components/DisclaimerDialog.tsx";
+import {DisclaimerAgreedKey} from "./utils/LocalStorageKeys.ts";
 
 const {Content} = Layout;
 
-// antd 组件文案跟随界面语言，未覆盖的语言回落到简体中文
+// antd 组件文案跟随界面语言，未覆盖的语言回落到英文
 const AntdLocales: Record<string, Locale> = {
-    "zh-CN": zhCN,
     "en-US": enUS,
+    "zh-CN": zhCN,
     "ja-JP": jaJP,
     "ko-KR": koKR,
 };
@@ -47,6 +49,15 @@ const App: React.FC = () => {
     const isDarkMode = useDarkMode();
     const [themeColor] = useThemeColor();
     const {openPath, selectAndOpen} = useFileOpener();
+    const [showDisclaimer, setShowDisclaimer] = useState(() => {
+        return localStorage.getItem(DisclaimerAgreedKey) !== 'true';
+    });
+
+    // 用户同意免责声明
+    const handleAgreeDisclaimer = () => {
+        setShowDisclaimer(false);
+        localStorage.setItem(DisclaimerAgreedKey, 'true');
+    };
 
     // 订阅语言变化，切换语言后重新解析 antd 的 locale
     // Subscribing to language changes re-resolves the antd locale after a switch
@@ -54,7 +65,7 @@ const App: React.FC = () => {
 
     // antd 的 locale 键必须是实际有翻译的四个语言码，webview 报 en-GB 这类标签时要先收敛
     // The antd locale key must be one of the four languages we ship, so tags such as en-GB are normalized first
-    const antdLocale = AntdLocales[resolveUiLanguage()] ?? zhCN;
+    const antdLocale = AntdLocales[resolveUiLanguage()] ?? enUS;
 
     // 通过文件关联启动时打开传入的文件
     useEffect(() => {
@@ -108,20 +119,23 @@ const App: React.FC = () => {
         >
             <AntdApp component={false}>
                 <MessageBinder/>
-                <Layout style={{height: "100vh"}}>
-                    <NavBar onSelectFile={selectAndOpen}/>
-                    <Content style={{padding: 16, overflow: "hidden", display: "flex", minHeight: 0}}>
-                        <Routes>
-                            <Route path="/" element={<HomePage/>}/>
-                            <Route path="/container" element={<ContainerPage/>}/>
-                            <Route path="/ct" element={<CtPage/>}/>
-                            <Route path="/search" element={<SearchPage/>}/>
-                            <Route path="/unpacked" element={<UnpackedPage/>}/>
-                            <Route path="/pack" element={<PackPage/>}/>
-                            <Route path="/settings" element={<SettingsPage/>}/>
-                        </Routes>
-                    </Content>
-                </Layout>
+                <DisclaimerDialog visible={showDisclaimer} onAgree={handleAgreeDisclaimer}/>
+                {!showDisclaimer && (
+                    <Layout style={{height: "100vh"}}>
+                        <NavBar onSelectFile={selectAndOpen}/>
+                        <Content style={{padding: 16, overflow: "hidden", display: "flex", minHeight: 0}}>
+                            <Routes>
+                                <Route path="/" element={<HomePage/>}/>
+                                <Route path="/container" element={<ContainerPage/>}/>
+                                <Route path="/ct" element={<CtPage/>}/>
+                                <Route path="/search" element={<SearchPage/>}/>
+                                <Route path="/unpacked" element={<UnpackedPage/>}/>
+                                <Route path="/pack" element={<PackPage/>}/>
+                                <Route path="/settings" element={<SettingsPage/>}/>
+                            </Routes>
+                        </Content>
+                    </Layout>
+                )}
             </AntdApp>
         </ConfigProvider>
     );

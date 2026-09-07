@@ -53,3 +53,6 @@ export const SearchHitTableWidthsKey = "searchHits"; // 全局搜索页结果表
 
 // 最近打开列表的上限
 export const RecentFilesLimit = 12;
+
+
+export const DisclaimerAgreedKey = "DisclaimerAgreedKey"; // 存储免责声明同意状态的键

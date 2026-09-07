@@ -20,7 +20,6 @@ i18n
         // 结果是四种语言全都加载不出来、界面只剩 i18n key 原文
         //
         // webview 有时只报主语言（zh / en / ja / ko）或 zh-Hans-CN 这类扩展标签，
-        // 逐个映射到实际存在的翻译文件，否则日韩用户会拿到 default 的中文
         fallbackLng: {
             'zh': ['zh-CN'],
             'zh-Hans': ['zh-CN'],
@@ -29,7 +28,7 @@ i18n
             'en': ['en-US'],
             'ja': ['ja-JP'],
             'ko': ['ko-KR'],
-            'default': ['zh-CN']
+            'default': ['en-US']
         },
         interpolation: {
             escapeValue: false, // react 默认转义
@@ -39,7 +38,7 @@ i18n
 export default i18n;
 
 /** UiLanguages 实际提供翻译文件的语言码，顺序即设置页语言菜单的顺序 */
-export const UiLanguages = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR'] as const;
+export const UiLanguages = ['en-US', 'zh-CN', 'ja-JP', 'ko-KR'] as const;
 
 /**
  * resolveUiLanguage 把检测到的语言收敛到实际有翻译的四个语言码
@@ -53,5 +52,5 @@ export function resolveUiLanguage(): string {
             return candidate;
         }
     }
-    return 'zh-CN';
+    return 'en-US';
 }

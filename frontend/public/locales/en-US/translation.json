@@ -351,6 +351,12 @@
     "unsupported": "KCES MOD EDITOR has no editor page for this format",
     "opened": "Asked KCES MOD EDITOR to open {{name}}"
   },
+  "Disclaimer": {
+    "title": "Disclaimer",
+    "agree": "I have read and agree",
+    "disagree": "Disagree and exit",
+    "load_error": "Failed to load disclaimer content. Please try again later."
+  },
   "Infos": {
     "check_update_success_new_version_available": "Update check succeeded, a new version is available",
     "check_update_success_no_new_version": "Update check succeeded, you are on the latest version"
