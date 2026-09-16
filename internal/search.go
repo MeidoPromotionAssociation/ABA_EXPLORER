@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -547,6 +548,49 @@ func (s *SearchService) ClearCache(root string) error {
 	return removeIndexCache(root)
 }
 
+// scanWorkerFloor 与 scanWorkerCeiling 是默认 worker 数的下限与上限
+// 解析一个文件的净计算只有几毫秒，而在慢盘上读一个文件要等十几次随机读、每次几毫秒到十几毫秒，
+// 等待比计算多出一个数量级，所以 worker 数要跟着延迟走而不是跟着核数走：实测 2 核加 HDD 级延迟时，
+// 4 个 worker 要 26 秒、128 个只要 2 秒。反过来在快盘上从 4 个开到 128 个墙钟纹丝不动，
+// 于是多开几乎不要钱、少开代价极大，默认值必须往下保底
+// 上限取 128 是因为那些数字出自"每次读注入固定延迟"的模型，它没有排队效应：
+// 真实的单块 HDD 在队列深度 32 附近吞吐就饱和，再多的 worker 只会推高 GC 与内存而换不来墙钟
+// scanWorkerFloor and scanWorkerCeiling bound the default worker count
+// Parsing one file costs a few milliseconds of real computation, while on a slow disk reading it waits on a dozen
+// random reads of several milliseconds each: the waiting outweighs the computing by an order of magnitude, so the
+// worker count has to follow the latency rather than the core count. Measured at two cores with HDD-like latency,
+// four workers needed 26 seconds and 128 needed 2. On a fast disk, by contrast, going from 4 workers to 128 did
+// not move the wall time at all, so over-provisioning is nearly free and under-provisioning is ruinous, and the
+// default needs a floor
+// The ceiling is 128 because those figures come from a model that injects a fixed delay per read and knows nothing
+// of queueing: a real single HDD saturates near queue depth 32, and more workers would only raise GC and memory
+// without buying wall time
+const (
+	scanWorkerFloor   = 32
+	scanWorkerCeiling = 128
+)
+
+// clampScanWorkers 把核数换算成默认 worker 数，并夹在上述上下限之间
+// clampScanWorkers turns a core count into the default worker count and clamps it between the bounds above
+func clampScanWorkers(cores int) int {
+	if cores < scanWorkerFloor {
+		return scanWorkerFloor
+	}
+	if cores > scanWorkerCeiling {
+		return scanWorkerCeiling
+	}
+	return cores
+}
+
+// scanWorkers 是 runScans 启用的 worker 数
+// 放在变量里让基准测试能对同一个目录扫一遍取值，因此它存的是夹紧之后的默认值，而不是让 runScans 再夹一次：
+// 夹紧放进 runScans 会让基准测试量不到阶梯的低段
+// scanWorkers is the worker count runScans starts
+// It lives in a variable so the benchmark can sweep one directory, and it holds the already clamped default rather
+// than leaving runScans to clamp again: clamping inside runScans would keep the benchmark from measuring the low
+// end of its ladder
+var scanWorkers = clampScanWorkers(runtime.NumCPU())
+
 // runScans 用 worker 池并行解析全部目标文件
 // 单个文件的解析是"少量随机读 + LZ4 解压 + MessagePack 解码"，读的字节数不到容器体积的 1%，
 // 因此瓶颈在每文件的寻道与解码而不是吞吐，并行能实打实地缩短墙钟时间
@@ -560,10 +604,7 @@ func (s *SearchService) runScans(
 	deep bool,
 	total int,
 ) ([]catalogScan, []containerScan, bool) {
-	workers := runtime.NumCPU()
-	if workers > 16 {
-		workers = 16
-	}
+	workers := scanWorkers
 	if workers < 1 {
 		workers = 1
 	}
@@ -653,6 +694,15 @@ func (s *SearchService) cancelledStats(root string, deep bool, start time.Time) 
 	return stats
 }
 
+// scanReader 把打开的文件交给解析器
+// 做成变量是为了让基准测试换上带人为延迟的读实现：本机的 NVMe 加系统缓存让这份数据远够不上 IO 密集，
+// "盘慢下来以后该开多少 worker"只能靠延迟注入回答
+// scanReader hands an opened file to the parsers
+// It is a variable so the benchmark can substitute a reader with artificial latency: this machine's NVMe and its
+// file cache keep the data far from IO-bound, and only injected latency can answer how many workers a slower disk
+// would want
+var scanReader = func(handle *os.File) io.ReadSeeker { return handle }
+
 // scanCatalogFile 解析一个 .ct，取出 catalog 里的全部资源名
 // scanCatalogFile parses one .ct and extracts every resource name from its catalog
 func scanCatalogFile(path string) catalogScan {
@@ -664,7 +714,7 @@ func scanCatalogFile(path string) catalogScan {
 	}
 	defer handle.Close()
 
-	table, err := ct.ReadContentTable(handle)
+	table, err := ct.ReadContentTable(scanReader(handle))
 	if err != nil {
 		result.warning = fmt.Sprintf("%s: %v", filepath.Base(path), err)
 		return result
@@ -727,7 +777,7 @@ func scanContainerFile(path string, deep bool) containerScan {
 	}
 	defer handle.Close()
 
-	abaFile, err := aba.ReadAba(handle)
+	abaFile, err := aba.ReadAba(scanReader(handle))
 	if err != nil {
 		result.warning = fmt.Sprintf("%s: %v", filepath.Base(path), err)
 		return result

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -949,5 +950,40 @@ func TestBuildIndexEmitsProgress(t *testing.T) {
 	}
 	if last.Total == 0 || last.Done != last.Total {
 		t.Errorf("final progress = %+v, want Done to reach Total", last)
+	}
+}
+
+// TestClampScanWorkers 钉住默认 worker 数的上下限
+// 这两个数是从真实目录上量出来的：慢盘（HDD、网络盘）上 worker 数要跟着读取延迟走而不是核数，
+// 少开一个数量级就是十几倍的墙钟，而快盘上多开是平的；将来改这两个数之前先看 internal/scanbench_test.go
+// TestClampScanWorkers pins the bounds of the default worker count
+// Both numbers come from measurements over a real directory: on a slow disk, an HDD or a network share, the worker
+// count follows the read latency rather than the core count, and being an order of magnitude short costs a tenfold
+// wall time, while on a fast disk extra workers are free. Read internal/scanbench_test.go before moving either
+func TestClampScanWorkers(t *testing.T) {
+	cases := []struct {
+		cores int
+		want  int
+	}{
+		{1, scanWorkerFloor},
+		{2, scanWorkerFloor},
+		{4, scanWorkerFloor},
+		{8, scanWorkerFloor},
+		{scanWorkerFloor - 1, scanWorkerFloor},
+		{scanWorkerFloor, scanWorkerFloor},
+		{scanWorkerFloor + 1, scanWorkerFloor + 1},
+		{64, 64},
+		{scanWorkerCeiling, scanWorkerCeiling},
+		{scanWorkerCeiling + 1, scanWorkerCeiling},
+		{256, scanWorkerCeiling},
+	}
+
+	for _, item := range cases {
+		if got := clampScanWorkers(item.cores); got != item.want {
+			t.Errorf("clampScanWorkers(%d) = %d, want %d", item.cores, got, item.want)
+		}
+	}
+	if scanWorkers != clampScanWorkers(runtime.NumCPU()) {
+		t.Errorf("scanWorkers = %d, want the clamped default for %d cores", scanWorkers, runtime.NumCPU())
 	}
 }
