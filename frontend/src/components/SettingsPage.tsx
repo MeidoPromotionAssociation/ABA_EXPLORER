@@ -6,7 +6,8 @@ import {
     Col,
     ColorPicker,
     Dropdown,
-    List,
+    Flex,
+    Listy,
     MenuProps,
     Row,
     Segmented,
@@ -16,6 +17,7 @@ import {
     Tooltip,
     Typography,
 } from "antd";
+import type {ListyProps} from "antd";
 import {useTranslation} from "react-i18next";
 import {
     CloseCircleOutlined,
@@ -33,6 +35,14 @@ import {NewVersionAvailableKey} from "../utils/LocalStorageKeys";
 import {resolveUiLanguage} from "../utils/i18n";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {App as AppService} from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
+
+/**
+ * 设置页的行只是「标签 + 控件」，既不可点也不需要分隔线，
+ * 因此抹掉 Listy 行默认的底边框与 hover 底色，只保留原先 16px 的行距。
+ */
+const settingsRowStyles: ListyProps["styles"] = {
+    item: {padding: "16px 0", borderBottom: "none", backgroundColor: "transparent"},
+};
 
 const SettingsPage: React.FC = () => {
     const {t, i18n} = useTranslation();
@@ -140,72 +150,31 @@ const SettingsPage: React.FC = () => {
                         title={<Typography.Title level={5}>{t('SettingsPage.general_settings')}</Typography.Title>}
                         style={{borderRadius: 8}}
                     >
-                        <List
-                            split={false}
-                            dataSource={[
+                        <Listy
+                            rowKey="key"
+                            styles={settingsRowStyles}
+                            items={[
                                 {
+                                    key: 'language',
                                     title: t('Common.choose_language'),
                                     type: 'language',
                                     value: language
                                 },
                                 {
+                                    key: 'theme',
                                     title: t('SettingsPage.theme_mode'),
                                     tooltip: t('SettingsPage.theme_mode_tip'),
                                     type: 'theme'
                                 },
                                 {
+                                    key: 'themeColor',
                                     title: t('SettingsPage.theme_color'),
                                     tooltip: t('SettingsPage.theme_color_tip'),
                                     type: 'themeColor'
                                 }
                             ]}
-                            renderItem={(item: any) => (
-                                <List.Item
-                                    style={{padding: '16px 0'}}
-                                    actions={[
-                                        item.type === 'theme' ? (
-                                            <Segmented
-                                                key="theme"
-                                                value={themeMode}
-                                                onChange={(value) => setThemeMode(value as ThemeMode)}
-                                                options={[
-                                                    {label: t('SettingsPage.theme_system'), value: 'system'},
-                                                    {label: t('SettingsPage.theme_light'), value: 'light'},
-                                                    {label: t('SettingsPage.theme_dark'), value: 'dark'},
-                                                ]}
-                                            />
-                                        ) : item.type === 'themeColor' ? (
-                                            <Space key="themeColor">
-                                                {themeColor ? (
-                                                    <Button size="small" onClick={() => setThemeColor(null)}>
-                                                        {t('SettingsPage.theme_color_reset')}
-                                                    </Button>
-                                                ) : null}
-                                                <ColorPicker
-                                                    value={themeColor ?? DefaultThemeColor}
-                                                    showText
-                                                    disabledAlpha
-                                                    presets={[{
-                                                        label: t('SettingsPage.theme_color_presets'),
-                                                        colors: [...new Set([
-                                                            DefaultThemeColor, '#1890ff', '#f5222d', '#fa541c', '#fa8c16',
-                                                            '#faad14', '#a0d911', '#52c41a', '#13c2c2',
-                                                            '#2f54eb', '#722ed1', '#eb2f96', '#8c8c8c', '#389E0D',
-                                                        ])],
-                                                    }]}
-                                                    onChangeComplete={(color) => setThemeColor(color.toHexString())}
-                                                />
-                                            </Space>
-                                        ) : (
-                                            <Dropdown key="language" menu={languageMenu} placement="bottomRight">
-                                                <Button>
-                                                    {languageLabel(item.value)} <TranslationOutlined/>
-                                                    <DownOutlined style={{marginLeft: 8}}/>
-                                                </Button>
-                                            </Dropdown>
-                                        )
-                                    ]}
-                                >
+                            itemRender={(item: any) => (
+                                <Flex align="center" justify="space-between" gap="middle">
                                     <Space>
                                         <span>{item.title}</span>
                                         {item.tooltip ? (
@@ -214,7 +183,47 @@ const SettingsPage: React.FC = () => {
                                             </Tooltip>
                                         ) : null}
                                     </Space>
-                                </List.Item>
+                                    {item.type === 'theme' ? (
+                                        <Segmented
+                                            value={themeMode}
+                                            onChange={(value) => setThemeMode(value as ThemeMode)}
+                                            options={[
+                                                {label: t('SettingsPage.theme_system'), value: 'system'},
+                                                {label: t('SettingsPage.theme_light'), value: 'light'},
+                                                {label: t('SettingsPage.theme_dark'), value: 'dark'},
+                                            ]}
+                                        />
+                                    ) : item.type === 'themeColor' ? (
+                                        <Space>
+                                            {themeColor ? (
+                                                <Button size="small" onClick={() => setThemeColor(null)}>
+                                                    {t('SettingsPage.theme_color_reset')}
+                                                </Button>
+                                            ) : null}
+                                            <ColorPicker
+                                                value={themeColor ?? DefaultThemeColor}
+                                                showText
+                                                disabledAlpha
+                                                presets={[{
+                                                    label: t('SettingsPage.theme_color_presets'),
+                                                    colors: [...new Set([
+                                                        DefaultThemeColor, '#1890ff', '#f5222d', '#fa541c', '#fa8c16',
+                                                        '#faad14', '#a0d911', '#52c41a', '#13c2c2',
+                                                        '#2f54eb', '#722ed1', '#eb2f96', '#8c8c8c', '#389E0D',
+                                                    ])],
+                                                }]}
+                                                onChangeComplete={(color) => setThemeColor(color.toHexString())}
+                                            />
+                                        </Space>
+                                    ) : (
+                                        <Dropdown menu={languageMenu} placement="bottomRight">
+                                            <Button>
+                                                {languageLabel(item.value)} <TranslationOutlined/>
+                                                <DownOutlined style={{marginLeft: 8}}/>
+                                            </Button>
+                                        </Dropdown>
+                                    )}
+                                </Flex>
                             )}
                         />
                     </Card>
@@ -225,10 +234,12 @@ const SettingsPage: React.FC = () => {
                         title={<Typography.Title level={5}>{t('SettingsPage.update_settings')}</Typography.Title>}
                         style={{borderRadius: 8}}
                     >
-                        <List
-                            split={false}
-                            dataSource={[
+                        <Listy
+                            rowKey="key"
+                            styles={settingsRowStyles}
+                            items={[
                                 {
+                                    key: 'checkUpdate',
                                     title: t('SettingsPage.is_check_update'),
                                     tooltip: t('SettingsPage.is_check_update_tip'),
                                     checked: checkUpdates,
@@ -236,6 +247,7 @@ const SettingsPage: React.FC = () => {
                                     type: 'switch'
                                 },
                                 {
+                                    key: 'dismissUpdate',
                                     title: t('SettingsPage.dismiss_update_note'),
                                     tooltip: t('SettingsPage.dismiss_update_note_tip'),
                                     type: 'button',
@@ -243,6 +255,7 @@ const SettingsPage: React.FC = () => {
                                     onClick: handleDismissUpdate
                                 },
                                 {
+                                    key: 'checkUpdateNow',
                                     title: t('SettingsPage.check_update_now'),
                                     tooltip: '',
                                     type: 'button',
@@ -250,28 +263,8 @@ const SettingsPage: React.FC = () => {
                                     onClick: () => checkForUpdatesWithMessage()
                                 },
                             ]}
-                            renderItem={(item: any) => (
-                                <List.Item
-                                    style={{padding: '16px 0'}}
-                                    actions={[
-                                        item.type === 'switch' ? (
-                                            <Switch
-                                                key="switch"
-                                                checked={item.checked}
-                                                onChange={item.onChange}
-                                            />
-                                        ) : (
-                                            <Button
-                                                key="button"
-                                                icon={item.icon}
-                                                onClick={item.onClick}
-                                                style={{borderRadius: 4}}
-                                            >
-                                                {item.title}
-                                            </Button>
-                                        )
-                                    ]}
-                                >
+                            itemRender={(item: any) => (
+                                <Flex align="center" justify="space-between" gap="middle">
                                     <Space>
                                         <span>{item.title}</span>
                                         {item.tooltip ? (
@@ -280,7 +273,21 @@ const SettingsPage: React.FC = () => {
                                             </Tooltip>
                                         ) : null}
                                     </Space>
-                                </List.Item>
+                                    {item.type === 'switch' ? (
+                                        <Switch
+                                            checked={item.checked}
+                                            onChange={item.onChange}
+                                        />
+                                    ) : (
+                                        <Button
+                                            icon={item.icon}
+                                            onClick={item.onClick}
+                                            style={{borderRadius: 4}}
+                                        >
+                                            {item.title}
+                                        </Button>
+                                    )}
+                                </Flex>
                             )}
                         />
                     </Card>
@@ -293,10 +300,12 @@ const SettingsPage: React.FC = () => {
                         title={<Typography.Title level={5}>{t('SettingsPage.launch_settings')}</Typography.Title>}
                         style={{borderRadius: 8}}
                     >
-                        <List
-                            split={false}
-                            dataSource={[
+                        <Listy
+                            rowKey="key"
+                            styles={settingsRowStyles}
+                            items={[
                                 {
+                                    key: 'singleInstance',
                                     title: t('SettingsPage.single_instance'),
                                     tooltip: t('SettingsPage.single_instance_tip'),
                                     checked: singleInstance,
@@ -304,41 +313,14 @@ const SettingsPage: React.FC = () => {
                                     type: 'switch'
                                 },
                                 {
+                                    key: 'urlProtocol',
                                     title: t('SettingsPage.url_protocol'),
                                     tooltip: t('SettingsPage.url_protocol_tip', {scheme: protocolScheme || 'aba-explorer'}),
                                     type: 'protocol'
                                 },
                             ]}
-                            renderItem={(item: any) => (
-                                <List.Item
-                                    style={{padding: '16px 0'}}
-                                    actions={[
-                                        item.type === 'switch' ? (
-                                            <Switch
-                                                key="switch"
-                                                checked={item.checked}
-                                                onChange={item.onChange}
-                                            />
-                                        ) : (
-                                            <Space key="protocol" wrap>
-                                                {/* 复制出来的是可直接补上路径的前缀，外部工具接的就是这一段 */}
-                                                {/* Copying yields the prefix a path can be appended to, which is what external tools consume */}
-                                                <Typography.Text
-                                                    code
-                                                    copyable={protocolScheme ? {text: `${protocolScheme}://open?path=`} : false}
-                                                >
-                                                    {protocolScheme ? `${protocolScheme}://` : '-'}
-                                                </Typography.Text>
-                                                {/* 只在确知没注册时报警：非 Windows 平台查不到注册情况，不能反过来断言已注册 */}
-                                                {/* Warning only when we know it is missing: registration is unqueryable outside Windows, so the opposite cannot be claimed */}
-                                                {protocolScheme && !protocolRegistered ? (
-                                                    <Tag
-                                                        color="orange">{t('SettingsPage.url_protocol_unregistered')}</Tag>
-                                                ) : null}
-                                            </Space>
-                                        )
-                                    ]}
-                                >
+                            itemRender={(item: any) => (
+                                <Flex align="center" justify="space-between" gap="middle">
                                     <Space>
                                         <span>{item.title}</span>
                                         {item.tooltip ? (
@@ -347,7 +329,30 @@ const SettingsPage: React.FC = () => {
                                             </Tooltip>
                                         ) : null}
                                     </Space>
-                                </List.Item>
+                                    {item.type === 'switch' ? (
+                                        <Switch
+                                            checked={item.checked}
+                                            onChange={item.onChange}
+                                        />
+                                    ) : (
+                                        <Space wrap>
+                                            {/* 复制出来的是可直接补上路径的前缀，外部工具接的就是这一段 */}
+                                            {/* Copying yields the prefix a path can be appended to, which is what external tools consume */}
+                                            <Typography.Text
+                                                code
+                                                copyable={protocolScheme ? {text: `${protocolScheme}://open?path=`} : false}
+                                            >
+                                                {protocolScheme ? `${protocolScheme}://` : '-'}
+                                            </Typography.Text>
+                                            {/* 只在确知没注册时报警：非 Windows 平台查不到注册情况，不能反过来断言已注册 */}
+                                            {/* Warning only when we know it is missing: registration is unqueryable outside Windows, so the opposite cannot be claimed */}
+                                            {protocolScheme && !protocolRegistered ? (
+                                                <Tag
+                                                    color="orange">{t('SettingsPage.url_protocol_unregistered')}</Tag>
+                                            ) : null}
+                                        </Space>
+                                    )}
+                                </Flex>
                             )}
                         />
                     </Card>
@@ -359,49 +364,31 @@ const SettingsPage: React.FC = () => {
                         title={<Typography.Title level={5}>{t('SettingsPage.about')}</Typography.Title>}
                         style={{borderRadius: 8}}
                     >
-                        <List
-                            split={false}
-                            dataSource={[
+                        <Listy
+                            rowKey="key"
+                            styles={settingsRowStyles}
+                            items={[
                                 {
+                                    key: 'version',
                                     title: t('SettingsPage.version'),
                                     type: 'text',
                                     value: AppVersion
                                 },
                                 {
+                                    key: 'engine',
                                     title: t('SettingsPage.engine'),
                                     tooltip: t('SettingsPage.engine_tip'),
                                     type: 'text',
                                     value: t('SettingsPage.engine_desc')
                                 },
                                 {
+                                    key: 'links',
                                     title: t('SettingsPage.links'),
                                     type: 'links'
                                 },
                             ]}
-                            renderItem={(item: any) => (
-                                <List.Item
-                                    style={{padding: '16px 0'}}
-                                    actions={[
-                                        item.type === 'links' ? (
-                                            <Space key="links" wrap>
-                                                <Button size="small" icon={<GithubOutlined/>}
-                                                        onClick={() => Browser.OpenURL(GitHubRepoUrl)}>
-                                                    ABA_EXPLORER
-                                                </Button>
-                                                <Button size="small" icon={<GithubOutlined/>}
-                                                        onClick={() => Browser.OpenURL(MeidoSerializationUrl)}>
-                                                    MeidoSerialization
-                                                </Button>
-                                                <Button size="small" icon={<GithubOutlined/>}
-                                                        onClick={() => Browser.OpenURL(ModEditorUrl)}>
-                                                    KCES_MOD_EDITOR
-                                                </Button>
-                                            </Space>
-                                        ) : (
-                                            <Typography.Text key="text" type="secondary">{item.value}</Typography.Text>
-                                        )
-                                    ]}
-                                >
+                            itemRender={(item: any) => (
+                                <Flex align="center" justify="space-between" gap="middle">
                                     <Space>
                                         <span>{item.title}</span>
                                         {item.tooltip ? (
@@ -410,7 +397,25 @@ const SettingsPage: React.FC = () => {
                                             </Tooltip>
                                         ) : null}
                                     </Space>
-                                </List.Item>
+                                    {item.type === 'links' ? (
+                                        <Space wrap>
+                                            <Button size="small" icon={<GithubOutlined/>}
+                                                    onClick={() => Browser.OpenURL(GitHubRepoUrl)}>
+                                                ABA_EXPLORER
+                                            </Button>
+                                            <Button size="small" icon={<GithubOutlined/>}
+                                                    onClick={() => Browser.OpenURL(MeidoSerializationUrl)}>
+                                                MeidoSerialization
+                                            </Button>
+                                            <Button size="small" icon={<GithubOutlined/>}
+                                                    onClick={() => Browser.OpenURL(ModEditorUrl)}>
+                                                KCES_MOD_EDITOR
+                                            </Button>
+                                        </Space>
+                                    ) : (
+                                        <Typography.Text type="secondary">{item.value}</Typography.Text>
+                                    )}
+                                </Flex>
                             )}
                         />
                     </Card>

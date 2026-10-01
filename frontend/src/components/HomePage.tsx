@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Button, Card, Col, Empty, List, Row, Space, theme, Typography} from "antd";
+import {Button, Card, Col, Empty, Listy, Row, Space, theme, Typography} from "antd";
 import {
     FolderOpenOutlined,
     InboxOutlined,
@@ -133,22 +133,24 @@ const HomePage: React.FC = () => {
                 {recent.length === 0 ? (
                     <Empty description={t("HomePage.no_recent")} image={Empty.PRESENTED_IMAGE_SIMPLE}/>
                 ) : (
-                    <List
-                        size="small"
-                        dataSource={recent}
-                        renderItem={(path) => (
-                            <List.Item
-                                style={{cursor: "pointer"}}
+                    <Listy
+                        items={recent}
+                        rowKey={(path) => path}
+                        classNames={{root: "recent-list"}}
+                        styles={{item: {padding: 0}}}
+                        itemRender={(path) => (
+                            <div
+                                style={{cursor: "pointer", padding: "8px 16px"}}
                                 onClick={async () => {
                                     await openPath(path);
                                     setRecent(readRecentFiles());
                                 }}
                             >
-                                <List.Item.Meta
-                                    title={<Text>{baseName(path)}</Text>}
-                                    description={<Text type="secondary" style={{fontSize: 12}}>{dirName(path)}</Text>}
-                                />
-                            </List.Item>
+                                <div style={{marginBottom: 8}}>
+                                    <Text>{baseName(path)}</Text>
+                                </div>
+                                <Text type="secondary" style={{fontSize: 12}}>{dirName(path)}</Text>
+                            </div>
                         )}
                     />
                 )}

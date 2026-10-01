@@ -128,3 +128,12 @@ html.file-drop-target-active {
     object-fit: contain;
     image-rendering: pixelated;
 }
+
+/*
+ * Listy 取代已弃用的 List 之后，分隔线要自己收尾：List 的 split 只在相邻两行之间画线，
+ * 最后一行不画，而 Listy 默认给每一行都加底边框，这里补回同样的收尾。
+ * 选择器带上 .ant-listy 是为了压过 antd 运行时注入的 `.ant-listy .ant-listy-item`。
+ */
+.recent-list.ant-listy .ant-listy-item:last-child {
+    border-bottom: none;
+}
