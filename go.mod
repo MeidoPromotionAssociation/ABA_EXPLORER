@@ -3,9 +3,9 @@ module github.com/MeidoPromotionAssociation/ABA_EXPLORER
 go 1.27
 
 require (
-	github.com/MeidoPromotionAssociation/MeidoSerialization/v2 v2.3.2
-	github.com/wailsapp/wails/v3 v3.0.0-beta.26
-	golang.org/x/sys v0.48.0
+	github.com/MeidoPromotionAssociation/MeidoSerialization/v2 v2.3.4
+	github.com/wailsapp/wails/v3 v3.0.0-beta.28
+	golang.org/x/sys v0.49.0
 )
 
 require (
@@ -15,11 +15,11 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/mattn/go-colorable v0.1.15 // indirect
+	github.com/mattn/go-colorable v0.1.16 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/pierrec/lz4/v4 v4.1.31 // indirect
+	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/qmuntal/gltf v0.29.0 // indirect
 	github.com/ugorji/go/codec v1.3.2 // indirect
 	github.com/ulikunitz/xz v0.5.17 // indirect
-	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 )
