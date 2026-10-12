@@ -34,21 +34,31 @@ export const GitHubReleaseUrl = "https://github.com/MeidoPromotionAssociation/AB
 export const MeidoSerializationUrl = "https://github.com/MeidoPromotionAssociation/MeidoSerialization";
 export const ModEditorUrl = "https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR";
 
-// MeidoSerialization 命令行文档按语言分节，同一个 KCES Model/Mesh/AnimationClip/AudioClip 章节
-// 在三种语言里的标题不同，锚点也就各不相同；韩语没有对应章节，回落到英语
-// The MeidoSerialization CLI documentation is split by language, so the KCES Model/Mesh/AnimationClip/AudioClip
-// section carries a different anchor per language; Korean has no matching section and falls back to English
+// MeidoSerialization 命令行文档按语言分节，同一个章节在不同语言里的标题不同，锚点也就各不相同；
+// 韩语没有对应章节，回落到英语
+// The MeidoSerialization CLI documentation is split by language, so a section carries a different anchor per
+// language; Korean has no matching section and falls back to English
 const MeidoSerializationCliDocBase = "https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md";
 
-const MeidoSerializationCliDocAnchors: Record<string, string> = {
-    "en-US": "#kces-model-mesh-animationclip-and-audioclip",
-    "zh-CN": "#kces-modelmeshanimationclip-%E4%B8%8E-audioclip",
-    "ja-JP": "#kces-modelmeshanimationclipaudioclip",
+const MeidoSerializationCliDocAnchors: Record<string, Record<string, string>> = {
+    // KCES Model/Mesh/AnimationClip/AudioClip 一节
+    gltf: {
+        "en-US": "#kces-model-mesh-animationclip-and-audioclip",
+        "zh-CN": "#kces-modelmeshanimationclip-%E4%B8%8E-audioclip",
+        "ja-JP": "#kces-modelmeshanimationclipaudioclip",
+    },
+    // 修改 Sprite 一节
+    sprite: {
+        "en-US": "#editing-a-sprite",
+        "zh-CN": "#%E4%BF%AE%E6%94%B9-sprite",
+        "ja-JP": "#sprite-%E3%81%AE%E7%B7%A8%E9%9B%86",
+    },
 };
 
-/** meidoSerializationCliDocUrl 按界面语言返回 KCES Model/Mesh/AnimationClip/AudioClip 章节的链接 */
-export function meidoSerializationCliDocUrl(language: string): string {
-    return MeidoSerializationCliDocBase + (MeidoSerializationCliDocAnchors[language] ?? MeidoSerializationCliDocAnchors["en-US"]);
+/** meidoSerializationCliDocUrl 按章节与界面语言返回文档链接，未知章节与未知语言都回落到英语 */
+export function meidoSerializationCliDocUrl(section: string, language: string): string {
+    const anchors = MeidoSerializationCliDocAnchors[section] ?? MeidoSerializationCliDocAnchors.gltf;
+    return MeidoSerializationCliDocBase + (anchors[language] ?? anchors["en-US"]);
 }
 
 // 容器扩展名，用于在拖放与启动文件时判断该进入哪个页面

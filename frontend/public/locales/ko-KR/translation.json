@@ -299,7 +299,8 @@
     "mesh_hint_body": "Mesh는 지오메트리만 포함하므로 glb로 직접 변환하면 파일이 완전하지 않습니다(스켈레톤과 계층 정보 누락). 완전한 모델이 필요하면 대응하는 Model 파일을 변환하세요.",
     "gltf_tooltip": "glTF로 변환할 때는 .model 파일을 변환하세요. 참조하는 .mmesh도 함께 처리됩니다. 단독 .mmesh를 직접 변환하면 스켈레톤, 스키닝 가중치, 모프 타깃, 머티리얼 이름이 빠진 불완전한 파일이 됩니다.",
     "blender_tooltip": "Blender에서 glb를 사용할 때도 몇 가지 주의할 점이 있습니다. MeidoSerialization 문서를 참고하세요.",
-    "gltf_tooltip_link": "MeidoSerialization 문서 보기"
+    "sprite_tooltip": "Sprite는 픽셀을 저장하지 않으므로 PNG 내보내기는 단방향입니다. Sprite의 모양을 바꾸려면 참조하는 Texture2D를 편집한 뒤 다시 패킹하고, 파일 이름과 픽셀 크기는 그대로 유지하세요.",
+    "doc_link": "MeidoSerialization 문서 보기"
   },
   "PackPage": {
     "title": "ABA로 패킹",

@@ -299,7 +299,8 @@
     "mesh_hint_body": "Mesh はジオメトリのみを含むため、直接 glb に変換すると完全なファイルになりません（スケルトンや階層が欠落します）。完全なモデルが必要な場合は、対応する Model ファイルを変換してください。",
     "gltf_tooltip": "glTF へ変換する際は .model ファイルを変換してください。参照している .mmesh も一緒に処理されます。単体の .mmesh を直接変換すると、スケルトン、スキニングウェイト、モーフターゲット、マテリアル名が欠落した不完全なファイルになります。",
     "blender_tooltip": "Blender で glb を使う際にもいくつか注意点があります。MeidoSerialization の資料をご参照ください。",
-    "gltf_tooltip_link": "MeidoSerialization のドキュメントを見る"
+    "sprite_tooltip": "Sprite はピクセルを保持しないため、PNG への書き出しは一方通行です。Sprite の見た目を変更するには、参照している Texture2D を編集して再パックしてください。ファイル名とピクセル寸法は変えないでください。",
+    "doc_link": "MeidoSerialization のドキュメントを見る"
   },
   "PackPage": {
     "title": "ABA へパック",

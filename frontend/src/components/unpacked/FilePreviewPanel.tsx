@@ -117,6 +117,37 @@ const FilePreviewPanel: React.FC<{ file: UnpackedFile | null }> = ({file}) => {
     // and the matching Model file is the right input for a full model, so the info area warns about it
     const meshGltfHint = file.kind === "Mesh" && targets.some((target) => target.key === "glb");
 
+    // 提示浮层里的文档链接按界面语言指向对应章节，各语言的锚点不同
+    // The docs link inside a tooltip points at the matching section for the current UI language, whose anchor differs per language
+    const docLink = (section: string) => (
+        <a
+            style={{color: "inherit", textDecoration: "underline", cursor: "pointer"}}
+            onClick={() => Browser.OpenURL(meidoSerializationCliDocUrl(section, resolveUiLanguage()))}
+        >
+            {t("FilePreviewPanel.doc_link")}
+        </a>
+    );
+    const tooltipBodyStyle: React.CSSProperties = {display: "flex", flexDirection: "column", gap: 4};
+
+    // glb 按钮：应当转换 .model（会带上它引用的 .mmesh），以及在 Blender 里使用 glb 的注意事项
+    // The glb button: convert the .model (which pulls in the .mmesh it references), plus the Blender caveats for glb
+    const gltfTooltip = (
+        <div style={tooltipBodyStyle}>
+            <span>{t("FilePreviewPanel.gltf_tooltip")}</span>
+            <span>{t("FilePreviewPanel.blender_tooltip")}</span>
+            {docLink("gltf")}
+        </div>
+    );
+
+    // PNG 按钮：Sprite 不存储像素，PNG 导出是单向的，改外观要编辑它引用的 Texture2D 再重新打包
+    // The PNG button: a Sprite stores no pixels, so the PNG export is one-way and changing its look means editing the referenced Texture2D and repacking
+    const spriteTooltip = (
+        <div style={tooltipBodyStyle}>
+            <span>{t("FilePreviewPanel.sprite_tooltip")}</span>
+            {docLink("sprite")}
+        </div>
+    );
+
     return (
         <div style={{height: "100%", display: "flex", flexDirection: "column", minHeight: 0, gap: 12, paddingLeft: 12}}>
             <Descriptions
@@ -166,32 +197,23 @@ const FilePreviewPanel: React.FC<{ file: UnpackedFile | null }> = ({file}) => {
                                 {t(`Target.${target.key}`)}
                             </Button>
                         );
-                        // 3D 资源导出的是自包含 glb，按钮上挂一段提示：应当转换 .model（会带上它引用的 .mmesh），
-                        // 而不是直接转换独立的 .mmesh，并附上 MeidoSerialization 文档里对应语言章节的链接
-                        // A 3D export is a self-contained glb, and the button carries a note to convert the .model
-                        // (which pulls in the .mmesh it references) rather than a standalone .mmesh, plus a link to the matching language section
-                        return target.key === "glb" ? (
-                            <Tooltip
-                                key={target.key}
-                                styles={{root: {maxWidth: 380}}}
-                                title={
-                                    <div style={{display: "flex", flexDirection: "column", gap: 4}}>
-                                        <span>{t("FilePreviewPanel.gltf_tooltip")}</span>
-                                        <span>{t("FilePreviewPanel.blender_tooltip")}</span>
-                                        <a
-                                            style={{color: "inherit", textDecoration: "underline", cursor: "pointer"}}
-                                            onClick={() => Browser.OpenURL(meidoSerializationCliDocUrl(resolveUiLanguage()))}
-                                        >
-                                            {t("FilePreviewPanel.gltf_tooltip_link")}
-                                        </a>
-                                    </div>
-                                }
-                            >
-                                {button}
-                            </Tooltip>
-                        ) : (
-                            <React.Fragment key={target.key}>{button}</React.Fragment>
-                        );
+                        // 只有 Sprite 的 PNG 导出才附「修改 Sprite」的说明，Texture2D 的 PNG 没有这个限制
+                        // Only a Sprite PNG export carries the "editing a Sprite" note, a Texture2D PNG has no such restriction
+                        if (target.key === "png" && file.kind === "Sprite") {
+                            return (
+                                <Tooltip key={target.key} styles={{root: {maxWidth: 380}}} title={spriteTooltip}>
+                                    {button}
+                                </Tooltip>
+                            );
+                        }
+                        if (target.key === "glb") {
+                            return (
+                                <Tooltip key={target.key} styles={{root: {maxWidth: 380}}} title={gltfTooltip}>
+                                    {button}
+                                </Tooltip>
+                            );
+                        }
+                        return <React.Fragment key={target.key}>{button}</React.Fragment>;
                     })
                 )}
                 <Divider vertical style={{margin: 0}}/>

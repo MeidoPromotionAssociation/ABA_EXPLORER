@@ -299,7 +299,8 @@
     "mesh_hint_body": "A Mesh carries geometry only, so converting it directly to glb produces an incomplete file (no skeleton or hierarchy). Convert the matching Model file when you need the full model.",
     "gltf_tooltip": "Convert the .model file, which also handles the .mmesh it references. Converting a standalone .mmesh directly produces an incomplete file without the skeleton, skinning weights, morph targets, or material names.",
     "blender_tooltip": "There are also a few things to watch out for when using the glb in Blender; see the MeidoSerialization documentation.",
-    "gltf_tooltip_link": "See the MeidoSerialization docs"
+    "sprite_tooltip": "A Sprite stores no pixels, so the PNG export is one-way. To change how a Sprite looks, edit the Texture2D it resolves to and repack, keeping both the file name and the pixel dimensions.",
+    "doc_link": "See the MeidoSerialization docs"
   },
   "PackPage": {
     "title": "Pack into ABA",

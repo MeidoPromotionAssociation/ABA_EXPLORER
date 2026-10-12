@@ -299,7 +299,8 @@
     "mesh_hint_body": "Mesh 只包含几何体，直接转换为 glb 得到的文件不完整（缺少骨架、层级等信息）。需要完整模型时，请改为转换对应的 Model 文件。",
     "gltf_tooltip": "转换为 glTF 时请对 .model 文件执行转换，它会一并处理所引用的 .mmesh；直接转换独立的 .mmesh 得到的文件不完整，缺少骨架、蒙皮权重、变形目标与材质名。",
     "blender_tooltip": "在 Blender 中使用 glb 时也有一些注意事项，请参阅 MeidoSerialization 文档。",
-    "gltf_tooltip_link": "查看 MeidoSerialization 文档"
+    "sprite_tooltip": "Sprite 不存储像素，PNG 导出是单向的。要修改 Sprite 的外观，请编辑它引用的 Texture2D 后重新打包，并保持文件名与像素尺寸不变。",
+    "doc_link": "查看 MeidoSerialization 文档"
   },
   "PackPage": {
     "title": "打包为 ABA",
