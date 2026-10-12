@@ -93,7 +93,9 @@
     "unpack_to": "解包到…",
     "generate_ct": "生成 .ct",
     "choose_unpack_dir": "选择解包输出目录",
-    "unpack_dir_exists": "输出目录已存在，其中的同名文件会被覆盖",
+    "unpack_dir_exists": "解包目录已存在",
+    "unpack_dir_exists_body": "该目录中已有解包产物。覆盖会重新解包并替换其中的文件，打开现有则直接浏览当前内容。",
+    "open_existing": "打开现有",
     "unpack_done": "已解包 {{count}} 个文件",
     "ct_exists": "同名 .ct 已存在，是否覆盖？",
     "ct_generated": "已生成 {{name}}"

@@ -93,7 +93,9 @@
     "unpack_to": "위치 지정 언팩…",
     "generate_ct": ".ct 생성",
     "choose_unpack_dir": "언팩 대상 디렉터리 선택",
-    "unpack_dir_exists": "대상 디렉터리가 이미 있어 같은 이름의 파일은 덮어씁니다",
+    "unpack_dir_exists": "언팩 디렉터리가 이미 있습니다",
+    "unpack_dir_exists_body": "이 디렉터리에 이미 언팩 결과가 있습니다. 덮어쓰면 다시 언팩하여 파일을 교체하고, 기존 항목 열기를 선택하면 현재 내용을 봅니다.",
+    "open_existing": "기존 항목 열기",
     "unpack_done": "{{count}}개 파일을 언팩했습니다",
     "ct_exists": "같은 이름의 .ct가 이미 있습니다. 덮어쓸까요?",
     "ct_generated": "{{name}}을 생성했습니다"

@@ -93,7 +93,9 @@
     "unpack_to": "Unpack to…",
     "generate_ct": "Generate .ct",
     "choose_unpack_dir": "Choose the unpack destination",
-    "unpack_dir_exists": "The destination already exists and files with the same names will be overwritten",
+    "unpack_dir_exists": "The unpack directory already exists",
+    "unpack_dir_exists_body": "This directory already contains unpacked assets. Overwrite unpacks again and replaces its files, while Open existing browses what is already there.",
+    "open_existing": "Open existing",
     "unpack_done": "Unpacked {{count}} files",
     "ct_exists": "A .ct with the same name already exists. Overwrite it?",
     "ct_generated": "Generated {{name}}"

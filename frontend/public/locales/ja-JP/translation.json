@@ -93,7 +93,9 @@
     "unpack_to": "展開先を指定…",
     "generate_ct": ".ct を生成",
     "choose_unpack_dir": "展開先ディレクトリを選択",
-    "unpack_dir_exists": "出力先が既に存在します。同名ファイルは上書きされます",
+    "unpack_dir_exists": "展開先ディレクトリが既に存在します",
+    "unpack_dir_exists_body": "このディレクトリには既に展開結果があります。上書きすると再度展開してファイルを置き換え、「既存を開く」を選ぶと現在の内容を閲覧します。",
+    "open_existing": "既存を開く",
     "unpack_done": "{{count}} 件のファイルを展開しました",
     "ct_exists": "同名の .ct が既に存在します。上書きしますか？",
     "ct_generated": "{{name}} を生成しました"

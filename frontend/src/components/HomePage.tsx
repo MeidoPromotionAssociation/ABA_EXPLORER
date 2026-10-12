@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Button, Card, Col, Empty, Listy, Row, Space, theme, Typography} from "antd";
+import {Button, Card, Col, Empty, Listy, Row, Space, Tag, theme, Typography} from "antd";
 import {
     FolderOpenOutlined,
     InboxOutlined,
@@ -11,24 +11,32 @@ import {useTranslation} from "react-i18next";
 import {useNavigate} from "react-router-dom";
 import {App as AppService} from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
 import useFileOpener from "../hooks/fileOpener";
-import {clearRecentFiles, readRecentFiles, setUnpackedDir} from "../hooks/workspace";
+import {clearRecentFiles, readRecentFiles, setUnpackedDir, type RecentEntry, type RecentKind} from "../hooks/workspace";
 import {ContainerFilter, CtFilter} from "../utils/consts";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {baseName, dirName} from "../utils/format";
 
 const {Title, Text, Paragraph} = Typography;
 
+// 最近打开条目的种类图标，与上方入口卡片的图标保持一致
+// Icons for recent entry kinds, kept in sync with the entry cards above
+const RecentKindIcons: Record<RecentKind, React.ReactNode> = {
+    container: <TableOutlined/>,
+    ct: <UnorderedListOutlined/>,
+    unpacked: <FolderOpenOutlined/>,
+};
+
 /**
  * HomePage 入口页
  * 五个入口分别对应打开容器、打开内容表、全局搜索、浏览解包目录和打包，
- * 下方列出最近打开过的路径，点击即重新打开
+ * 下方列出最近打开过的容器、内容表与解包目录，点击即重新打开
  */
 const HomePage: React.FC = () => {
     const {t} = useTranslation();
     const {token} = theme.useToken();
     const navigate = useNavigate();
     const {openPath} = useFileOpener();
-    const [recent, setRecent] = useState<string[]>(() => readRecentFiles());
+    const [recent, setRecent] = useState<RecentEntry[]>(() => readRecentFiles());
 
     const pickFile = async (filter: string, label: string) => {
         try {
@@ -135,21 +143,28 @@ const HomePage: React.FC = () => {
                 ) : (
                     <Listy
                         items={recent}
-                        rowKey={(path) => path}
+                        rowKey={(entry) => entry.path}
                         classNames={{root: "recent-list"}}
                         styles={{item: {padding: 0}}}
-                        itemRender={(path) => (
+                        itemRender={(entry) => (
                             <div
                                 style={{cursor: "pointer", padding: "8px 16px"}}
                                 onClick={async () => {
-                                    await openPath(path);
+                                    await openPath(entry.path);
                                     setRecent(readRecentFiles());
                                 }}
                             >
-                                <div style={{marginBottom: 8}}>
-                                    <Text>{baseName(path)}</Text>
+                                <Space size={8} style={{marginBottom: 8}}>
+                                    <span style={{color: token.colorPrimary, display: "inline-flex"}}>
+                                        {RecentKindIcons[entry.kind]}
+                                    </span>
+                                    <Text>{baseName(entry.path)}</Text>
+                                    {/* 种类标签复用导航栏的名称，三种条目在四个语言里已有译文 */}
+                                    <Tag style={{marginInlineEnd: 0}}>{t(`NavBar.${entry.kind}`)}</Tag>
+                                </Space>
+                                <div>
+                                    <Text type="secondary" style={{fontSize: 12}}>{dirName(entry.path)}</Text>
                                 </div>
-                                <Text type="secondary" style={{fontSize: 12}}>{dirName(path)}</Text>
                             </div>
                         )}
                     />

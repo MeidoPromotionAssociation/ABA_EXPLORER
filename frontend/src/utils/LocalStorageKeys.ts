@@ -16,7 +16,7 @@ export const LatestVersionKey = "LatestVersion"; // 最新版本号
 export const UpdateRetryKey = "UpdateRetry"; // 上次检查失败后是否进入重试间隔
 
 // 工作区
-export const RecentFilesKey = "RecentFiles"; // 最近打开的文件路径列表
+export const RecentFilesKey = "RecentFiles"; // 最近打开的容器、内容表与解包目录列表
 
 export const AbaTabKey = "AbaExplorerTab"; // ABA 页当前标签
 

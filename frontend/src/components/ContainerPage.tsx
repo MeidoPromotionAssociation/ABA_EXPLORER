@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {App as AntdApp, Button, Card, Dropdown, Skeleton, Space, Tabs, Tag} from "antd";
+import {App as AntdApp, Button, Card, Dropdown, Modal, Skeleton, Space, Tabs, Tag, Typography} from "antd";
 import {DownOutlined, ExportOutlined, FileAddOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
 import {useNavigate} from "react-router-dom";
@@ -22,6 +22,8 @@ import {AbaTabKey} from "../utils/LocalStorageKeys";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {baseName, formatNumber} from "../utils/format";
 
+const {Paragraph} = Typography;
+
 /**
  * ContainerPage UnityFS 容器（.aba/.asset_bg/.asset_scene）浏览页
  * 概览展示 UnityFS 头部与块目录元数据，标签页分别是对象、数据块、目录条目和 SerializedFile 详情
@@ -37,6 +39,8 @@ const ContainerPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState(false);
     const [tab, setTab] = useState(() => localStorage.getItem(AbaTabKey) ?? "assets");
+    // 默认解包目录已存在时挂起目标目录，交给用户选择覆盖还是打开现有
+    const [pendingUnpackDir, setPendingUnpackDir] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         if (!containerPath) {
@@ -79,18 +83,11 @@ const ContainerPage: React.FC = () => {
         });
     };
 
-    const unpack = async (chooseDir: boolean) => {
+    /** runUnpack 执行解包并把解包目录交给解包产物页 */
+    const runUnpack = async (outDir: string) => {
         if (!containerPath) return;
         setBusy(true);
         try {
-            let outDir = await AbaExplorerService.DefaultUnpackDir(containerPath);
-            if (chooseDir) {
-                const picked = await AppService.SelectDirectory(t("ContainerPage.choose_unpack_dir"));
-                if (!picked) return;
-                outDir = picked;
-            } else if (!(await confirmOverwrite(outDir, t("ContainerPage.unpack_dir_exists")))) {
-                return;
-            }
             const result = await AbaExplorerService.Unpack(containerPath, outDir);
             if (!result) return;
             setUnpackedDir(result.outDir);
@@ -101,6 +98,41 @@ const ContainerPage: React.FC = () => {
         } finally {
             setBusy(false);
         }
+    };
+
+    /**
+     * unpack 选择解包目标后交给 runUnpack
+     * 默认目录已存在时不直接覆盖，而是问用户要覆盖重解包还是打开现有产物；
+     * "解包到…"选中的目录是用户自己指定的，不再追问
+     */
+    const unpack = async (chooseDir: boolean) => {
+        if (!containerPath) return;
+        try {
+            if (chooseDir) {
+                const picked = await AppService.SelectDirectory(t("ContainerPage.choose_unpack_dir"));
+                if (!picked) return;
+                await runUnpack(picked);
+                return;
+            }
+            const outDir = await AbaExplorerService.DefaultUnpackDir(containerPath);
+            const info = await AppService.StatPath(outDir);
+            // 只把已存在的目录当成"已有解包产物"；同名文件留给解包本身报错，提示更具体
+            if (info.exists && info.isDir) {
+                setPendingUnpackDir(outDir);
+                return;
+            }
+            await runUnpack(outDir);
+        } catch (error) {
+            message.error(describeError(error));
+        }
+    };
+
+    /** openExistingUnpacked 放弃解包，直接打开已存在的解包目录 */
+    const openExistingUnpacked = () => {
+        if (!pendingUnpackDir) return;
+        setUnpackedDir(pendingUnpackDir);
+        setPendingUnpackDir(null);
+        navigate("/unpacked");
     };
 
     const generateCt = async () => {
@@ -230,6 +262,40 @@ const ContainerPage: React.FC = () => {
                     />
                 </>
             )}
+
+            <Modal
+                open={pendingUnpackDir !== null}
+                title={t("ContainerPage.unpack_dir_exists")}
+                onCancel={() => setPendingUnpackDir(null)}
+                footer={[
+                    <Button key="cancel" onClick={() => setPendingUnpackDir(null)}>
+                        {t("Common.cancel")}
+                    </Button>,
+                    <Button key="open" onClick={openExistingUnpacked}>
+                        {t("ContainerPage.open_existing")}
+                    </Button>,
+                    <Button
+                        key="overwrite"
+                        type="primary"
+                        danger
+                        onClick={() => {
+                            const dir = pendingUnpackDir;
+                            if (!dir) return;
+                            setPendingUnpackDir(null);
+                            void runUnpack(dir);
+                        }}
+                    >
+                        {t("Common.overwrite")}
+                    </Button>,
+                ]}
+            >
+                <Paragraph type="secondary" style={{marginBottom: 8}}>
+                    {t("ContainerPage.unpack_dir_exists_body")}
+                </Paragraph>
+                <Paragraph className="mono" style={{marginBottom: 0, fontSize: 12, wordBreak: "break-all"}}>
+                    {pendingUnpackDir}
+                </Paragraph>
+            </Modal>
         </Card>
     );
 };
