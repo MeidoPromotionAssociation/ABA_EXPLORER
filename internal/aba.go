@@ -122,13 +122,14 @@ type AbaExternalFile struct {
 // AbaAsset is one Unity object in a SerializedFile
 // PathId travels as a string because a Unity PathID is a random 64-bit value beyond the JS safe-integer range
 type AbaAsset struct {
-	PathId    string `json:"pathId"`    // Unity PathID 的十进制字符串 / Decimal string of the Unity PathID
-	TypeId    int32  `json:"typeId"`    // Unity class ID / Unity class ID
-	TypeName  string `json:"typeName"`  // 类型名 / Type name
-	Name      string `json:"name"`      // 对象 m_Name / Object m_Name
-	Size      uint32 `json:"size"`      // 序列化数据字节数 / Serialized data size in bytes
-	Offset    int64  `json:"offset"`    // 相对数据区的偏移 / Offset relative to the data area
-	Container string `json:"container"` // AssetBundle m_Container 加载名 / AssetBundle m_Container load name
+	PathId      string `json:"pathId"`      // Unity PathID 的十进制字符串 / Decimal string of the Unity PathID
+	TypeId      int32  `json:"typeId"`      // Unity class ID / Unity class ID
+	TypeName    string `json:"typeName"`    // 类型名 / Type name
+	Name        string `json:"name"`        // 对象 m_Name / Object m_Name
+	Size        uint32 `json:"size"`        // 序列化数据字节数 / Serialized data size in bytes
+	Offset      int64  `json:"offset"`      // 相对数据区的偏移 / Offset relative to the data area
+	Container   string `json:"container"`   // AssetBundle m_Container 加载名 / AssetBundle m_Container load name
+	ModEditable bool   `json:"modEditable"` // m_Name 是否为 KCES MOD EDITOR 有编辑页面的格式 / Whether m_Name is a format KCES MOD EDITOR has an editor page for
 }
 
 // compressionName 把 Flags 低六位的压缩类型翻译成显示名
@@ -294,13 +295,14 @@ func (s *AbaExplorerService) inspectSerializedFile(abaFile *aba.Aba, directoryIn
 	result.Assets = make([]AbaAsset, 0, len(entries))
 	for _, entry := range entries {
 		result.Assets = append(result.Assets, AbaAsset{
-			PathId:    strconv.FormatInt(entry.PathId, 10),
-			TypeId:    entry.TypeId,
-			TypeName:  entry.TypeName,
-			Name:      entry.Name,
-			Size:      entry.Size,
-			Offset:    entry.Offset,
-			Container: containers[entry.PathId],
+			PathId:      strconv.FormatInt(entry.PathId, 10),
+			TypeId:      entry.TypeId,
+			TypeName:    entry.TypeName,
+			Name:        entry.Name,
+			Size:        entry.Size,
+			Offset:      entry.Offset,
+			Container:   containers[entry.PathId],
+			ModEditable: canOpenInModEditor(entry.Name),
 		})
 	}
 	return result, nil

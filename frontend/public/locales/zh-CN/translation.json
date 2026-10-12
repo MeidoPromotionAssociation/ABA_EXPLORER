@@ -16,7 +16,13 @@
     "container_files": "UnityFS 容器",
     "ct_files": "内容表",
     "json_files": "JSON 文件",
-    "file_exists": "文件已存在，是否覆盖？"
+    "export": "导出",
+    "exported": "已导出 {{name}}",
+    "export_unsupported": "这种类型不能单独导出，请用整体解包",
+    "png_files": "PNG 图片",
+    "any_files": "全部文件",
+    "file_exists": "文件已存在，是否覆盖？",
+    "no_extension": "（无后缀）"
   },
   "VirtualTable": {
     "resize_column": "调整列宽：{{name}}",
@@ -103,15 +109,11 @@
     "unnamed": "（无名）",
     "search_placeholder": "搜索名称、加载名、PathID 或类型",
     "filter_type": "按类型筛选",
+    "filter_ext": "按后缀名筛选",
     "filter_source": "按来源筛选",
     "count": "显示 {{shown}} / {{total}}",
     "empty": "没有符合条件的对象",
-    "export": "导出",
-    "export_hint": "双击对象行可导出（TextAsset 导出原文件，贴图与精灵导出 PNG）",
-    "exported": "已导出 {{name}}",
-    "export_unsupported": "这种类型不能单独导出，请用整体解包",
-    "png_filter": "PNG 图片",
-    "any_filter": "全部文件"
+    "export_hint": "双击对象行可导出（TextAsset 导出原文件，贴图与精灵导出 PNG）"
   },
   "StructureTables": {
     "compression": "压缩方式",
@@ -252,6 +254,7 @@
     "actions": "操作",
     "open_container": "打开所在容器",
     "open_catalog": "打开配套内容表",
+    "export": "导出这个对象",
     "no_container_path": "未能定位到容器文件"
   },
   "UnpackedPage": {
@@ -265,6 +268,8 @@
     "size": "大小",
     "search_placeholder": "搜索相对路径",
     "filter_kind": "按类型筛选",
+    "filter_ext": "按后缀名筛选",
+    "choose_target": "选择转换目标",
     "convert_selected": "转换选中（{{count}}）",
     "count": "显示 {{shown}} / {{total}}",
     "empty": "这个目录里没有文件",
@@ -353,7 +358,8 @@
     "double_click_hint": "双击文件可用 KCES MOD EDITOR 打开",
     "not_installed": "未检测到 KCES MOD EDITOR 的协议注册，请先用它的安装器安装一次",
     "unsupported": "KCES MOD EDITOR 没有这种格式的编辑页面",
-    "opened": "已请求 KCES MOD EDITOR 打开 {{name}}"
+    "opened": "已请求 KCES MOD EDITOR 打开 {{name}}",
+    "opened_temp": "已请求 KCES MOD EDITOR 打开 {{name}}（临时文件）"
   },
   "Disclaimer": {
     "title": "免责声明",

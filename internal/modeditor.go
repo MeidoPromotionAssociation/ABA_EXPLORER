@@ -35,6 +35,14 @@ var modEditorExtensions = []string{
 // CanOpenInModEditor 判断文件是否为 KCES MOD EDITOR 能编辑的格式
 // CanOpenInModEditor reports whether a file is in a format KCES MOD EDITOR can edit
 func (a *App) CanOpenInModEditor(path string) bool {
+	return canOpenInModEditor(path)
+}
+
+// canOpenInModEditor 是格式判断的实现，接受路径或裸文件名
+// 容器概览要把每个对象的 m_Name 逐个判一遍，走包内函数省掉一次跨进程调用
+// canOpenInModEditor implements the format check and accepts either a path or a bare file name
+// The container overview runs the check on every object's m_Name, so an in-package function saves a round trip
+func canOpenInModEditor(path string) bool {
 	lower := strings.ToLower(filepath.Base(path))
 	for _, extension := range modEditorExtensions {
 		// 复合扩展名如 .ikcol.bytes 要求前面还有文件名，避免把纯扩展名文件当成合法输入

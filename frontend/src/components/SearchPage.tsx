@@ -2,6 +2,8 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Alert, Button, Card, Collapse, Input, Progress, Select, Space, Switch, Tag, Tooltip, Typography,} from "antd";
 import {
     DatabaseOutlined,
+    DownloadOutlined,
+    EditOutlined,
     FolderOpenOutlined,
     ReloadOutlined,
     SearchOutlined,
@@ -13,6 +15,7 @@ import {useTranslation} from "react-i18next";
 import {useNavigate} from "react-router-dom";
 import {Events} from "@wailsio/runtime";
 import {
+    AbaExplorerService,
     App as AppService,
     SearchService,
 } from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal";
@@ -20,14 +23,16 @@ import type {
     IndexFacets,
     IndexProgress,
     IndexStats,
+    LocatedAsset,
     SearchHit,
 } from "../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
 import VirtualTable, {VirtualColumn} from "./common/VirtualTable";
 import {setContainerPath, setCtPath} from "../hooks/workspace";
 import {useProvideOpenAction} from "../hooks/openAction";
 import {useDebouncedValue} from "../hooks/useDebouncedValue";
+import {openAssetInModEditor} from "../hooks/modEditor";
 import {appMessage as message, describeError} from "../utils/feedback";
-import {formatNumber} from "../utils/format";
+import {baseName, formatNumber, suggestExportName} from "../utils/format";
 import {SearchDeepKey, SearchHitTableWidthsKey, SearchRootKey} from "../utils/LocalStorageKeys";
 
 const {Text, Paragraph} = Typography;
@@ -45,6 +50,13 @@ const OriginColors: Record<string, string> = {
 // 一次查询最多取回的条数，与后端 maxSearchLimit 保持一致
 // The most hits one query fetches, kept in step with maxSearchLimit on the backend
 const HitLimit = 5000;
+
+/**
+ * hitBusyKey 标识"某一行正在做某个动作"，只用来把那一行的按钮换成加载态
+ * 名字里可能有空格，用 NUL 分隔，避免两行拼出同一个键
+ */
+const hitBusyKey = (hit: SearchHit, action: string): string =>
+    `${hit.containerPath}\u0000${hit.owner}\u0000${hit.name}\u0000${action}`;
 
 /**
  * SearchPage 全局资源名搜索页
@@ -73,6 +85,9 @@ const SearchPage: React.FC = () => {
     const [total, setTotal] = useState(0);
     const [truncated, setTruncated] = useState(false);
     const [searching, setSearching] = useState(false);
+    // 导出与"用编辑器打开"都要先定位对象再落盘，期间把那一行的按钮换成加载态
+    // Both exporting and opening in the editor locate the object and write it out, and the row's buttons turn into spinners meanwhile
+    const [busy, setBusy] = useState("");
 
     // 查询是异步的，慢的那次回来晚了会覆盖新结果，用序号丢弃过期响应
     // Queries are async and a slow one returning late would overwrite newer results, so a sequence number discards stale responses
@@ -249,6 +264,59 @@ const SearchPage: React.FC = () => {
         }
     };
 
+    /**
+     * locateHit 把一条搜索结果定位到容器内的对象
+     * 索引里只有名字与归属，PathID 和所在 SerializedFile 要打开容器才知道，所以每次导出前现查一次；
+     * 定不到时返回 null 并给出提示，调用方直接结束
+     */
+    const locateHit = async (hit: SearchHit): Promise<LocatedAsset | null> => {
+        if (!hit.containerPath) {
+            message.warning(t("SearchPage.no_container_path"));
+            return null;
+        }
+        return AbaExplorerService.LocateAsset(hit.containerPath, hit.owner, hit.name);
+    };
+
+    const exportHit = async (hit: SearchHit) => {
+        setBusy(hitBusyKey(hit, "export"));
+        try {
+            const located = await locateHit(hit);
+            if (!located) return;
+            if (!located.exportKind) {
+                message.info(t("Common.export_unsupported"));
+                return;
+            }
+            const png = located.exportKind === "png";
+            const target = await AppService.SelectPathToSave(
+                png ? "*.png" : "*.*",
+                png ? t("Common.png_files") : t("Common.any_files"),
+                suggestExportName(located.name, located.pathId, png)
+            );
+            if (!target) return;
+            await AbaExplorerService.ExportAsset(hit.containerPath, located.sourceName, located.pathId, target);
+            message.success(t("Common.exported", {name: baseName(target)}));
+        } catch (error) {
+            message.error(describeError(error));
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const editHit = async (hit: SearchHit) => {
+        setBusy(hitBusyKey(hit, "edit"));
+        try {
+            const located = await locateHit(hit);
+            if (!located) return;
+            await openAssetInModEditor(located.name, () =>
+                AbaExplorerService.ExportAssetToTemp(hit.containerPath, located.sourceName, located.pathId, located.name)
+            );
+        } catch (error) {
+            message.error(describeError(error));
+        } finally {
+            setBusy("");
+        }
+    };
+
     const extensionOptions = useMemo(
         () => (facets?.extensions ?? []).map((facet) => ({
             value: facet.value,
@@ -320,7 +388,7 @@ const SearchPage: React.FC = () => {
         {
             key: "actions",
             title: t("SearchPage.actions"),
-            width: "116px",
+            width: "180px",
             align: "center",
             resizable: false,
             render: (row) => (
@@ -358,6 +426,34 @@ const SearchPage: React.FC = () => {
                             onClick={(event) => {
                                 event.stopPropagation();
                                 void reveal(row);
+                            }}
+                        />
+                    </Tooltip>
+                    {/* 导出与用编辑器打开都要求这一条能在容器里定位到对象，所以只认 containerPath */}
+                    {/* Exporting and opening in the editor both need the hit to resolve inside a container, so only containerPath counts */}
+                    <Tooltip title={t("SearchPage.export")}>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<DownloadOutlined/>}
+                            disabled={!row.containerPath}
+                            loading={busy === hitBusyKey(row, "export")}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void exportHit(row);
+                            }}
+                        />
+                    </Tooltip>
+                    <Tooltip title={t("ModEditor.open_in_editor")}>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined/>}
+                            disabled={!row.containerPath}
+                            loading={busy === hitBusyKey(row, "edit")}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void editHit(row);
                             }}
                         />
                     </Tooltip>

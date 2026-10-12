@@ -47,6 +47,11 @@ export class AbaAsset {
      */
     "container": string;
 
+    /**
+     * m_Name 是否为 KCES MOD EDITOR 有编辑页面的格式 / Whether m_Name is a format KCES MOD EDITOR has an editor page for
+     */
+    "modEditable": boolean;
+
     /** Creates a new AbaAsset instance. */
     constructor($$source: Partial<AbaAsset> = {}) {
         if (!("pathId" in $$source)) {
@@ -69,6 +74,9 @@ export class AbaAsset {
         }
         if (!("container" in $$source)) {
             this["container"] = "";
+        }
+        if (!("modEditable" in $$source)) {
+            this["modEditable"] = false;
         }
 
         Object.assign(this, $$source);
@@ -1530,6 +1538,61 @@ export class IndexStats {
             $$parsedSource["warnings"] = $$createField12_0($$parsedSource["warnings"]);
         }
         return new IndexStats($$parsedSource as Partial<IndexStats>);
+    }
+}
+
+/**
+ * LocatedAsset 是搜索结果在容器内定位到的对象
+ * 搜索索引只记名字与归属，PathID 和所在 SerializedFile 要打开容器才知道，所以导出前在这里现查一次
+ * LocatedAsset is the object a search result was located to inside a container
+ * The search index records names and owners only, so the PathID and the owning SerializedFile are resolved here,
+ * right before an export
+ */
+export class LocatedAsset {
+    /**
+     * 所在 SerializedFile 条目名 / Owning SerializedFile entry name
+     */
+    "sourceName": string;
+
+    /**
+     * Unity PathID 的十进制字符串 / Decimal string of the Unity PathID
+     */
+    "pathId": string;
+
+    /**
+     * 还原出的 KCES 资源名，可直接用作导出文件名 / Recovered KCES resource name, usable as the export file name
+     */
+    "name": string;
+
+    /**
+     * 导出形态，空表示不能单独导出 / Export shape, empty when single-object export is unsupported
+     */
+    "exportKind": string;
+
+    /** Creates a new LocatedAsset instance. */
+    constructor($$source: Partial<LocatedAsset> = {}) {
+        if (!("sourceName" in $$source)) {
+            this["sourceName"] = "";
+        }
+        if (!("pathId" in $$source)) {
+            this["pathId"] = "";
+        }
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("exportKind" in $$source)) {
+            this["exportKind"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new LocatedAsset instance from a string or object.
+     */
+    static createFrom($$source: any = {}): LocatedAsset {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new LocatedAsset($$parsedSource as Partial<LocatedAsset>);
     }
 }
 

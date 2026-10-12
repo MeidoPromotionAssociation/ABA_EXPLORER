@@ -16,7 +16,13 @@
     "container_files": "UnityFS containers",
     "ct_files": "Content tables",
     "json_files": "JSON files",
-    "file_exists": "The file already exists. Overwrite it?"
+    "export": "Export",
+    "exported": "Exported {{name}}",
+    "export_unsupported": "This type cannot be exported on its own; unpack the container instead",
+    "png_files": "PNG image",
+    "any_files": "All files",
+    "file_exists": "The file already exists. Overwrite it?",
+    "no_extension": "(no extension)"
   },
   "VirtualTable": {
     "resize_column": "Resize column: {{name}}",
@@ -103,15 +109,11 @@
     "unnamed": "(unnamed)",
     "search_placeholder": "Search name, load name, PathID, or type",
     "filter_type": "Filter by type",
+    "filter_ext": "Filter by extension",
     "filter_source": "Filter by source",
     "count": "Showing {{shown}} / {{total}}",
     "empty": "No objects match the filters",
-    "export": "Export",
-    "export_hint": "Double-click a row to export (TextAsset keeps its original file, textures and sprites become PNG)",
-    "exported": "Exported {{name}}",
-    "export_unsupported": "This type cannot be exported on its own; unpack the container instead",
-    "png_filter": "PNG image",
-    "any_filter": "All files"
+    "export_hint": "Double-click a row to export (TextAsset keeps its original file, textures and sprites become PNG)"
   },
   "StructureTables": {
     "compression": "Compression",
@@ -252,6 +254,7 @@
     "actions": "Actions",
     "open_container": "Open the container",
     "open_catalog": "Open the paired content table",
+    "export": "Export this object",
     "no_container_path": "The container file could not be located"
   },
   "UnpackedPage": {
@@ -265,6 +268,8 @@
     "size": "Size",
     "search_placeholder": "Search relative path",
     "filter_kind": "Filter by type",
+    "filter_ext": "Filter by extension",
+    "choose_target": "Choose conversion target",
     "convert_selected": "Convert selected ({{count}})",
     "count": "Showing {{shown}} / {{total}}",
     "empty": "This directory has no files",
@@ -353,7 +358,8 @@
     "double_click_hint": "Double-click a file to open it in KCES MOD EDITOR",
     "not_installed": "No KCES MOD EDITOR protocol registration found. Run its installer once first.",
     "unsupported": "KCES MOD EDITOR has no editor page for this format",
-    "opened": "Asked KCES MOD EDITOR to open {{name}}"
+    "opened": "Asked KCES MOD EDITOR to open {{name}}",
+    "opened_temp": "Asked KCES MOD EDITOR to open {{name}} (temporary copy)"
   },
   "Disclaimer": {
     "title": "Disclaimer",

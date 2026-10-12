@@ -36,6 +36,7 @@ export {
     IndexOptions,
     IndexProgress,
     IndexStats,
+    LocatedAsset,
     PackResult,
     PathInfo,
     ProtocolStatus,

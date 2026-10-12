@@ -188,6 +188,55 @@ func TestExportImageAssetMatchesConversion(t *testing.T) {
 	}
 }
 
+// TestTempExportName 检查交给临时目录的文件名只保留末段，且空名字被明确拒绝
+// 名字里带上路径时必须落到临时目录里，而不是照着调用方给的相对路径写到别处
+// TestTempExportName checks the name handed to the temporary directory keeps only its last segment and blank names are rejected
+// A name carrying a path has to land inside the temporary directory instead of following the caller's relative path elsewhere
+func TestTempExportName(t *testing.T) {
+	accepted := map[string]string{
+		"parts.menuassets":            "parts.menuassets",
+		"  parts.menuassets  ":        "parts.menuassets",
+		`..\..\evil.menuassets`:       "evil.menuassets",
+		"../../evil.menuassets":       "evil.menuassets",
+		`C:\Users\mods\body.model`:    "body.model",
+		"/home/user/mods/body.model":  "body.model",
+		"nested/deeper/skirt.dsbconf": "skirt.dsbconf",
+	}
+	for input, want := range accepted {
+		got, err := tempExportName(input)
+		if err != nil {
+			t.Errorf("tempExportName(%q) returned an error: %v", input, err)
+			continue
+		}
+		if got != want {
+			t.Errorf("tempExportName(%q) = %q, want %q", input, got, want)
+		}
+	}
+
+	for _, input := range []string{"", "   ", ".", "..", "mods/", `mods\`, "/"} {
+		if got, err := tempExportName(input); err == nil {
+			t.Errorf("tempExportName(%q) = %q, want an error", input, got)
+		}
+	}
+}
+
+// TestTempExportDir 检查临时导出目录建在系统临时目录下并可直接写入
+// TestTempExportDir checks the temporary export directory sits under the system temporary directory and accepts writes
+func TestTempExportDir(t *testing.T) {
+	dir, err := tempExportDir()
+	if err != nil {
+		t.Fatalf("tempExportDir: %v", err)
+	}
+	info, err := os.Stat(dir)
+	if err != nil || !info.IsDir() {
+		t.Fatalf("tempExportDir returned %q which is not an existing directory: %v", dir, err)
+	}
+	relative, err := filepath.Rel(os.TempDir(), dir)
+	if err != nil || strings.HasPrefix(relative, "..") {
+		t.Errorf("tempExportDir returned %q, which is outside %q", dir, os.TempDir())
+	}
+}
+
 // TestExportAssetRejectsUnsupported 检查不支持单独导出的类型给出明确错误而不是写出半成品
 // TestExportAssetRejectsUnsupported checks unsupported types fail loudly instead of writing a half-finished file
 func TestExportAssetRejectsUnsupported(t *testing.T) {

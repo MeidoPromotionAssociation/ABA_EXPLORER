@@ -41,6 +41,142 @@ func (s *AbaExplorerService) AssetExportKindForType(typeId int32) string {
 	return AssetExportKind(typeId)
 }
 
+// LocatedAsset 是搜索结果在容器内定位到的对象
+// 搜索索引只记名字与归属，PathID 和所在 SerializedFile 要打开容器才知道，所以导出前在这里现查一次
+// LocatedAsset is the object a search result was located to inside a container
+// The search index records names and owners only, so the PathID and the owning SerializedFile are resolved here,
+// right before an export
+type LocatedAsset struct {
+	SourceName string `json:"sourceName"` // 所在 SerializedFile 条目名 / Owning SerializedFile entry name
+	PathId     string `json:"pathId"`     // Unity PathID 的十进制字符串 / Decimal string of the Unity PathID
+	Name       string `json:"name"`       // 还原出的 KCES 资源名，可直接用作导出文件名 / Recovered KCES resource name, usable as the export file name
+	ExportKind string `json:"exportKind"` // 导出形态，空表示不能单独导出 / Export shape, empty when single-object export is unsupported
+}
+
+// LocateAsset 在容器内按搜索结果定位对象
+// owner 非空时按宿主条目定位：.menu/.mate/.pmat 这些名字只存在于容器条目的内部，索引里记的宿主就是承载它们的那个对象；
+// owner 为空时按 m_Container 加载名定位，catalog 层与容器层记的都是这个名字
+// 两种情况下都拿加载名还原出的资源名去比，与建索引时的口径一致
+// LocateAsset locates the object behind a search result inside a container
+// A non-empty owner locates by owning entry: names such as .menu, .mate, and .pmat live only inside a container entry,
+// and the owner recorded in the index is the object carrying them. An empty owner locates by m_Container load name,
+// which is the name both the catalog layer and the container layer record.
+// Both compare against the resource name recovered from the load name, the same rule the index was built with
+func (s *AbaExplorerService) LocateAsset(containerPath string, owner string, name string) (LocatedAsset, error) {
+	target := strings.TrimSpace(owner)
+	if target == "" {
+		target = strings.TrimSpace(name)
+	}
+	if target == "" {
+		return LocatedAsset{}, fmt.Errorf("no name was given to locate")
+	}
+
+	abaFile, handle, err := s.readerForKind(s.ContainerKind(containerPath))(containerPath)
+	if err != nil {
+		return LocatedAsset{}, err
+	}
+	defer handle.Close()
+
+	// 某个条目解析失败不该盖掉后面条目里可能存在的命中，但全都没命中时要能说清原因
+	// A failing entry must not mask a hit in a later one, yet a total miss still has to explain itself
+	var firstErr error
+	for index := range abaFile.BlockInfo.DirectoryInfos {
+		dir := &abaFile.BlockInfo.DirectoryInfos[index]
+		if !dir.IsSerialized() {
+			continue
+		}
+		directoryIndex := int64(index)
+		assetsFile, err := aba.ReadAssetsFileRange(dir.DecompressedSize, func(offset int64, size int64) ([]byte, error) {
+			return abaFile.GetFileDataRange(directoryIndex, offset, size)
+		})
+		if err != nil {
+			if firstErr == nil {
+				firstErr = fmt.Errorf("parse serialized entry %q: %w", dir.Name, err)
+			}
+			continue
+		}
+		containers, err := assetsFile.GetAssetBundleContainerMap()
+		if err != nil {
+			if firstErr == nil {
+				firstErr = fmt.Errorf("read the m_Container of %q: %w", dir.Name, err)
+			}
+			continue
+		}
+		for pathID, loadName := range containers {
+			resource := resourceNameFromLoadName(loadName)
+			if resource == "" || !strings.EqualFold(resource, target) {
+				continue
+			}
+			info := assetsFile.GetAssetInfoByPathID(pathID)
+			if info == nil {
+				continue
+			}
+			return LocatedAsset{
+				SourceName: dir.Name,
+				PathId:     strconv.FormatInt(pathID, 10),
+				Name:       resource,
+				ExportKind: AssetExportKind(info.TypeId),
+			}, nil
+		}
+	}
+	if firstErr != nil {
+		return LocatedAsset{}, firstErr
+	}
+	return LocatedAsset{}, fmt.Errorf("%q is not present in %q", target, containerPath)
+}
+
+// tempExportDir 是"导出到临时目录"的落脚点
+// 固定一个子目录而不是每次新建：同一个对象反复打开时复用同一个文件，编辑器里拿到的路径稳定，
+// 也不会在临时目录里堆下一串副本
+// tempExportDir is where exports destined for the temporary directory land
+// One fixed subdirectory instead of a fresh one per call: reopening the same object reuses the same file,
+// keeping the path stable inside the editor and avoiding a pile of copies in the temporary directory
+func tempExportDir() (string, error) {
+	dir := filepath.Join(os.TempDir(), "ABA_EXPLORER")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", fmt.Errorf("create the temporary export directory %q: %w", dir, err)
+	}
+	return dir, nil
+}
+
+// ExportAssetToTemp 把容器内的单个对象导出到应用的临时目录并返回写出的绝对路径
+// 供"用 KCES MOD EDITOR 打开"这类必须先落盘再交给外部程序的流程使用，临时文件交给系统清理
+// fileName 是写出的文件名，只取末段，避免调用方给出的名字带上路径把文件写到别处
+// ExportAssetToTemp writes one object from the container into the application's temporary directory and returns the absolute path written
+// It backs flows that must land on disk before an external program can take over, such as opening the file in KCES MOD EDITOR,
+// and the system cleans the temporary copy up afterwards
+// fileName is the name to write under, reduced to its last segment so a caller-supplied name cannot place the file elsewhere
+func (s *AbaExplorerService) ExportAssetToTemp(containerPath string, sourceName string, pathId string, fileName string) (string, error) {
+	name, err := tempExportName(fileName)
+	if err != nil {
+		return "", err
+	}
+	dir, err := tempExportDir()
+	if err != nil {
+		return "", err
+	}
+	target := filepath.Join(dir, name)
+	if err := s.ExportAsset(containerPath, sourceName, pathId, target); err != nil {
+		return "", err
+	}
+	return target, nil
+}
+
+// tempExportName 从调用方给出的文件名里取末段作为临时文件名
+// 只取末段，这样调用方给的名字带上路径时也写不到临时目录之外
+// tempExportName takes the last segment of a caller-supplied file name as the temporary file name
+// Reducing to the last segment keeps a name carrying a path from writing outside the temporary directory
+func tempExportName(fileName string) (string, error) {
+	name := strings.TrimSpace(fileName)
+	if index := strings.LastIndexAny(name, `/\`); index >= 0 {
+		name = name[index+1:]
+	}
+	if name == "" || name == "." || name == ".." {
+		return "", fmt.Errorf("no file name was given for the temporary export")
+	}
+	return name, nil
+}
+
 // ExportAsset 把容器内的单个对象写到 outPath
 // 只读取目标 SerializedFile 的必要范围，因此从 500 MB 级别的整合包里取一张贴图也不必解压整个条目
 // ExportAsset writes one object from the container to outPath

@@ -16,7 +16,13 @@
     "container_files": "UnityFS コンテナ",
     "ct_files": "コンテンツテーブル",
     "json_files": "JSON ファイル",
-    "file_exists": "ファイルが既に存在します。上書きしますか？"
+    "export": "書き出し",
+    "exported": "{{name}} を書き出しました",
+    "export_unsupported": "この種類は単独で書き出せません。コンテナ全体を展開してください",
+    "png_files": "PNG 画像",
+    "any_files": "すべてのファイル",
+    "file_exists": "ファイルが既に存在します。上書きしますか？",
+    "no_extension": "（拡張子なし）"
   },
   "VirtualTable": {
     "resize_column": "列幅を変更：{{name}}",
@@ -103,15 +109,11 @@
     "unnamed": "（無名）",
     "search_placeholder": "名前・ロード名・PathID・型を検索",
     "filter_type": "型で絞り込み",
+    "filter_ext": "拡張子で絞り込み",
     "filter_source": "取得元で絞り込み",
     "count": "{{shown}} / {{total}} 件を表示",
     "empty": "条件に一致するオブジェクトがありません",
-    "export": "書き出し",
-    "export_hint": "行をダブルクリックで書き出し（TextAsset は元ファイル、テクスチャとスプライトは PNG）",
-    "exported": "{{name}} を書き出しました",
-    "export_unsupported": "この種類は単独で書き出せません。コンテナ全体を展開してください",
-    "png_filter": "PNG 画像",
-    "any_filter": "すべてのファイル"
+    "export_hint": "行をダブルクリックで書き出し（TextAsset は元ファイル、テクスチャとスプライトは PNG）"
   },
   "StructureTables": {
     "compression": "圧縮方式",
@@ -252,6 +254,7 @@
     "actions": "操作",
     "open_container": "所属コンテナを開く",
     "open_catalog": "対応するコンテンツテーブルを開く",
+    "export": "このオブジェクトを書き出し",
     "no_container_path": "コンテナファイルを特定できませんでした"
   },
   "UnpackedPage": {
@@ -265,6 +268,8 @@
     "size": "サイズ",
     "search_placeholder": "相対パスを検索",
     "filter_kind": "型で絞り込み",
+    "filter_ext": "拡張子で絞り込み",
+    "choose_target": "変換先を選択",
     "convert_selected": "選択項目を変換（{{count}}）",
     "count": "{{shown}} / {{total}} 件を表示",
     "empty": "このディレクトリにファイルはありません",
@@ -353,7 +358,8 @@
     "double_click_hint": "ファイルをダブルクリックすると KCES MOD EDITOR で開きます",
     "not_installed": "KCES MOD EDITOR のプロトコル登録が見つかりません。先にインストーラーで一度インストールしてください",
     "unsupported": "KCES MOD EDITOR にはこの形式の編集ページがありません",
-    "opened": "KCES MOD EDITOR に {{name}} を開くよう要求しました"
+    "opened": "KCES MOD EDITOR に {{name}} を開くよう要求しました",
+    "opened_temp": "KCES MOD EDITOR に {{name}}（一時ファイル）を開くよう要求しました"
   },
   "Disclaimer": {
     "title": "免責事項",

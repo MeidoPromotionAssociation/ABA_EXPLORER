@@ -57,6 +57,19 @@ export function ExportAsset(containerPath: string, sourceName: string, pathId: s
 }
 
 /**
+ * ExportAssetToTemp 把容器内的单个对象导出到应用的临时目录并返回写出的绝对路径
+ * 供"用 KCES MOD EDITOR 打开"这类必须先落盘再交给外部程序的流程使用，临时文件交给系统清理
+ * fileName 是写出的文件名，只取末段，避免调用方给出的名字带上路径把文件写到别处
+ * ExportAssetToTemp writes one object from the container into the application's temporary directory and returns the absolute path written
+ * It backs flows that must land on disk before an external program can take over, such as opening the file in KCES MOD EDITOR,
+ * and the system cleans the temporary copy up afterwards
+ * fileName is the name to write under, reduced to its last segment so a caller-supplied name cannot place the file elsewhere
+ */
+export function ExportAssetToTemp(containerPath: string, sourceName: string, pathId: string, fileName: string): $CancellablePromise<string> {
+    return $Call.ByID(2202017146, containerPath, sourceName, pathId, fileName);
+}
+
+/**
  * Inspect 解析容器并返回完整结构快照，包含每个 SerializedFile 的对象列表与 m_Container 加载名
  * Inspect parses a container and returns a complete structural snapshot including each SerializedFile's objects and m_Container load names
  */
@@ -77,6 +90,23 @@ export function ListUnpackedDir(dirPath: string): $CancellablePromise<$models.Un
 }
 
 /**
+ * LocateAsset 在容器内按搜索结果定位对象
+ * owner 非空时按宿主条目定位：.menu/.mate/.pmat 这些名字只存在于容器条目的内部，索引里记的宿主就是承载它们的那个对象；
+ * owner 为空时按 m_Container 加载名定位，catalog 层与容器层记的都是这个名字
+ * 两种情况下都拿加载名还原出的资源名去比，与建索引时的口径一致
+ * LocateAsset locates the object behind a search result inside a container
+ * A non-empty owner locates by owning entry: names such as .menu, .mate, and .pmat live only inside a container entry,
+ * and the owner recorded in the index is the object carrying them. An empty owner locates by m_Container load name,
+ * which is the name both the catalog layer and the container layer record.
+ * Both compare against the resource name recovered from the load name, the same rule the index was built with
+ */
+export function LocateAsset(containerPath: string, owner: string, name: string): $CancellablePromise<$models.LocatedAsset> {
+    return $Call.ByID(2600478065, containerPath, owner, name).then(($result: any) => {
+        return $$createType4($result);
+    });
+}
+
+/**
  * Pack 扫描纯资源目录并在其父目录生成固定 Unity 2022.3.35f1 的 ABA 与配套 CT
  * outputBaseName 为空时取目录名，并去掉 MeidoSerialization 解包时追加的 _unpacked 后缀
  * Pack scans a plain resource directory and emits a fixed Unity 2022.3.35f1 ABA with its companion CT in the parent directory
@@ -84,7 +114,7 @@ export function ListUnpackedDir(dirPath: string): $CancellablePromise<$models.Un
  */
 export function Pack(dirPath: string, outputBaseName: string): $CancellablePromise<$models.PackResult | null> {
     return $Call.ByID(3553670072, dirPath, outputBaseName).then(($result: any) => {
-        return $$createType5($result);
+        return $$createType6($result);
     });
 }
 
@@ -103,5 +133,6 @@ const $$createType0 = $models.AbaOverview.createFrom;
 const $$createType1 = $Create.Nullable($$createType0);
 const $$createType2 = $models.UnpackResult.createFrom;
 const $$createType3 = $Create.Nullable($$createType2);
-const $$createType4 = $models.PackResult.createFrom;
-const $$createType5 = $Create.Nullable($$createType4);
+const $$createType4 = $models.LocatedAsset.createFrom;
+const $$createType5 = $models.PackResult.createFrom;
+const $$createType6 = $Create.Nullable($$createType5);
