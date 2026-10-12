@@ -2,7 +2,9 @@
 
 [Disclaimer/How to Dev/Credit/KISS Rule](#how-to-dev)
 
-[![Github All Releases](https://img.shields.io/github/downloads/MeidoPromotionAssociation/ABA_EXPLORER/total.svg)]() [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/MeidoPromotionAssociation/ABA_EXPLORER)
+![Github All Releases](https://img.shields.io/github/downloads/MeidoPromotionAssociation/ABA_EXPLORER/total.svg)
+
+![Ask DeepWiki](https://deepwiki.com/badge.svg)
 
 ---
 
@@ -23,8 +25,9 @@ Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/M
 - **Unpacking**: extract into a pure asset directory without metadata, preview images or external stream files, with output organized into directories by Unity type
 - **Packing**: pack a pure asset directory back into an ABA fixed at Unity 2022.3.35f1, generate the matching `.ct` at the same time, and show the in-game loading warnings reported by the packer
 - **Preview**: Texture2D and Sprite are decoded directly into images, text assets are shown as UTF-8
-- **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF/GLB, AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting
-- **Hand off to the editor**: unpacked formats that have an editing page, such as `.menuassets`, can be opened in [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) through the `kces-mod-editor://` protocol via a button or a double click. Please install that software first
+- **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF (glb), AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting
+  - Converting to glTF/GLB must be run on the `.model` file. Converting a standalone `.mmesh` directly produces an incomplete file: no skeleton, skinning weights, morph targets, material names, or UV1 through UV7. See the [MeidoSerialization CLI documentation](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-model-mesh-animationclip-and-audioclip) for details
+- **Hand off to the editor**: unpacked formats that have an editing page, such as `.menuassets`, can be opened in [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) through the `kces-mod-editor://` protocol via a button or a double click. Please install that software first
 - **Invoked from outside**: other programs can request a file with `aba-explorer://open?path=<URL-encoded absolute path>`, and the protocol only accepts `.aba`, `.asset_bg`, `.asset_scene` and `.ct`. Single instance is a switch on the settings page: with it on every invocation is handed to the window already running, with it off each one opens another window so two containers can sit side by side
 - Drag and drop, opening through file associations, the `Ctrl+O` shortcut, and dark mode following the system
 - Full multi-language support. If you would like to add a language, please contribute through Issues or Pull Requests.
@@ -32,12 +35,12 @@ Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/M
 ### Supported files
 
 | Description                                   | Formats                                                                                                                   |
-|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Unpacking and packing Unity Bundle containers | `.aba` `.asset_bg` `.asset_scene`                                                                                         |
 | Viewing and generating content tables         | `.ct`                                                                                                                     |
-| Conversion between unpacked asset formats     | Unpacked output and KCES native formats (`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes`, etc.)  |
+| Conversion between unpacked asset formats     | Unpacked output and KCES native formats (`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes`, etc.) |
 
-For structured editing of individual formats such as `.menuassets`, please use [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR).
+For structured editing of individual formats such as `.menuassets`, please use [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR).
 
 ### Dependencies
 
@@ -46,14 +49,14 @@ This application requires the following software to run:
 - Microsoft Edge WebView2
   - This application is built with Wails, which relies on Microsoft Edge WebView2 to render pages, so WebView2 needs to be installed.
   - If you use Windows 11, it is usually already installed on your system.
-  - If you use another system and do not have WebView2 installed, the application should prompt you to install it on startup.
-    Alternatively, you can install it from the official website: [https://developer.microsoft.com/en-us/microsoft-edge/webview2](https://developer.microsoft.com/en-us/microsoft-edge/webview2)
-  - What is Microsoft Edge
-    WebView2? [https://learn.microsoft.com/en-us/microsoft-edge/webview2/](https://learn.microsoft.com/en-us/microsoft-edge/webview2/)
+  - If you use another system and do not have WebView2 installed, the application should prompt you to install it on startup.  
+    Alternatively, you can install it from the official website: <https://developer.microsoft.com/en-us/microsoft-edge/webview2>
+  - What is Microsoft Edge  
+    WebView2? <https://learn.microsoft.com/en-us/microsoft-edge/webview2/>
 - ImageMagick
   - Using the .tex format and image processing related features requires ImageMagick, in order to support as many image formats as possible. If you do not use .tex editing, you may choose not to install it.
-  - Please install it from the official website: [https://imagemagick.org/download](https://imagemagick.org/download)
-  - Find `ImageMagick-<version>-Q16-HDRI-x64-dll.exe` on the download page, download and install it, and make sure to check
+  - Please install it from the official website: <https://imagemagick.org/download>
+  - Find `ImageMagick-<version>-Q16-HDRI-x64-dll.exe` on the download page, download and install it, and make sure to check  
     `Add application directory to your system path` during installation.
   - Alternatively, run `winget install ImageMagick.Q16-HDRI` in your terminal to install it.
   - The version used for testing is `ImageMagick-7.1.2-30-Q16-HDRI-x64-dll.exe`. If you run into problems, please try this version.
@@ -70,8 +73,8 @@ The only outgoing network request is for checking updates, and it only calls the
 
 By downloading this software, you accept and agree to abide by the [Disclaimer](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER?tab=readme-ov-file#disclaimer)
 
-Please download from Github
-Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases)
+Please download from Github  
+Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 - If you want to install the editor into your system and automatically associate file types, use `aba-explorer-amd64-installer.exe`
   - After file types are associated, different files will show different icons. See [here](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build) to preview the icons
@@ -90,22 +93,11 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - [90135's COM3D2 Scripts Collection](https://github.com/90135/COM3D2_Scripts_901)
 - [90135's COM3D2 Tools](https://github.com/90135/COM3D2_Tools_901)
 
-<br>
-
-| Screenshot                | Screenshot                | Screenshot                | Screenshot                |
-|---------------------------|---------------------------|---------------------------|---------------------------|
-| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
-
-
-<br>
-<br>
-<br>
+| Screenshot | Screenshot | Screenshot | Screenshot |
+| ---------- | ---------- | ---------- | ---------- |
+| 1          | 2          | 3          | 4          |
 
 ---
-
-<br>
-<br>
-<br>
 
 ## 简体中文
 
@@ -124,21 +116,23 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - **解包**：提取为不含 metadata、预览图与外部流文件的纯资源目录，产物按 Unity 类型分目录
 - **打包**：把纯资源目录打回固定 Unity 2022.3.35f1 的 ABA，同时生成配套 `.ct`，并展示打包器给出的游戏加载警告
 - **预览**：Texture2D 与 Sprite 直接解码成图片，文本资源按 UTF-8 展示
-- **转换**：Texture2D/Sprite → PNG，Mesh/AnimationClip/Model → glTF/GLB，AudioClip → 原始音频，`.nei` → CSV，以及各 KCES 结构化格式 → JSON，支持批量并逐条报告结果
-- **交给编辑器**：解包产物里 `.menuassets` 这类有编辑页面的格式，可以按钮或双击通过 `kces-mod-editor://` 协议交给 [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) 打开，请先安装该软件
+- **转换**：Texture2D/Sprite → PNG，Mesh/AnimationClip/Model → glTF (glb)，AudioClip → 原始音频，`.nei` → CSV，以及各 KCES 结构化格式 → JSON，支持批量并逐条报告结果
+  - 转换为 glTF/GLB 时请对 `.model` 文件执行转换。直接转换独立的 `.mmesh` 得到的文件不完整：缺少骨架、蒙皮权重、变形目标、材质名与 UV1–UV7。详见 [MeidoSerialization 命令行文档](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-modelmeshanimationclip-%E4%B8%8E-audioclip)
+- **交给编辑器**：解包产物里 `.menuassets` 这类有编辑页面的格式，可以按钮或双击通过 `kces-mod-editor://` 协议交给 [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) 打开，请先安装该软件
 - **外部唤起**：其他程序可以用 `aba-explorer://open?path=<URL 编码的绝对路径>` 请求打开一个文件，协议只接受 `.aba`、`.asset_bg`、`.asset_scene` 与 `.ct`。单实例是设置页里的开关：开启时每次唤起都转交给已在运行的窗口，关闭时各开一个新窗口，方便并排对比两个容器
 - 文件拖放、文件关联打开、`Ctrl+O` 快捷键、深色模式跟随系统
 - 拥有完整的多国语言支持，如果您想添加语言，请通过 Issues 或 Pull Request 为我们贡献。
 
+
 ### 支持的文件
 
-| 描述                        | 格式                                                                                                     |
-|-----------------------------|----------------------------------------------------------------------------------------------------------|
-| 解包和打包Unity Bundle 容器 | `.aba` `.asset_bg` `.asset_scene`                                                                        |
-| 查看和生成内容表            | `.ct`                                                                                                    |
-| 解包产物格式互转            | 解包产物与 KCES 原生格式（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes` 等） |
+| 描述                   | 格式                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| 解包和打包Unity Bundle 容器 | `.aba` `.asset_bg` `.asset_scene`                                                            |
+| 查看和生成内容表             | `.ct`                                                                                        |
+| 解包产物格式互转             | 解包产物与 KCES 原生格式（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes` 等） |
 
-`.menuassets` 这类单个格式的结构化编辑请使用 [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR)。
+`.menuassets` 这类单个格式的结构化编辑请使用 [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR)。
 
 ### 依赖
 
@@ -147,14 +141,14 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - Microsoft Edge WebView2
   - 本应用使用 Wails 技术打造，它依赖于 Microsoft Edge WebView2 来渲染页面，因此需要安装 WebView2。
   - 如果你使用 Windows 11，这通常已经安装在你的系统上了。
-  - 如果你使用其他系统，且没有安装 WebView2，启动应用程序时它应该会提示您安装。
-    或者您也可以从官方网站安装：[https://developer.microsoft.com/zh-cn/microsoft-edge/webview2](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2)
-  - Microsoft Edge WebView2
-    是什么？[https://learn.microsoft.com/zh-cn/microsoft-edge/webview2/](https://learn.microsoft.com/zh-cn/microsoft-edge/webview2/)
+  - 如果你使用其他系统，且没有安装 WebView2，启动应用程序时它应该会提示您安装。  
+    或者您也可以从官方网站安装：<https://developer.microsoft.com/zh-cn/microsoft-edge/webview2>
+  - Microsoft Edge WebView2  
+    是什么？<https://learn.microsoft.com/zh-cn/microsoft-edge/webview2/>
 - ImageMagick
   - 使用 .tex 格式和图片处理相关功能需要安装 ImageMagick，这是为了支持尽可能多的图片格式。如果您不使用 .tex 编辑，您可以选择不安装。
-  - 请从官方网站安装：[https://imagemagick.org/download](https://imagemagick.org/download)
-  - 在下载页面上找到 `ImageMagick-版本号-Q16-HDRI-x64-dll.exe` 下载并安装，安装时需要勾选
+  - 请从官方网站安装：<https://imagemagick.org/download>
+  - 在下载页面上找到 `ImageMagick-版本号-Q16-HDRI-x64-dll.exe` 下载并安装，安装时需要勾选  
     `Add application directory to your system path`
   - 或者在您的终端执行 `winget install ImageMagick.Q16-HDRI` 命令安装。
   - 用于测试的版本是 `ImageMagick-7.1.2-30-Q16-HDRI-x64-dll.exe` 如果出现问题，请尝试这个版本。
@@ -171,11 +165,11 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 
 下载此软件即表示您接受并同意遵守[免责声明](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER?tab=readme-ov-file#disclaimer)
 
-请在 Github Releases
-中下载：[https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases)
+请在 Github Releases  
+中下载：<https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 - 如果您希望将编辑器安装到系统中并自动关联文件类型，请使用 `aba-explorer-amd64-installer.exe`
-    - 关联文件类型后，不同的文件将显示不同的图标。请查看[此处](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build)预览图标
+  - 关联文件类型后，不同的文件将显示不同的图标。请查看[此处](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build)预览图标
 - 如果您不想安装，请使用 `aba-explorer.exe`
 - 如果您使用的是 Linux 系统，请使用 `aba-explorer_linux_amd64`
 
@@ -191,22 +185,11 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - [90135 的 COM3D2 脚本收藏集](https://github.com/90135/COM3D2_Scripts_901)
 - [90135 的 COM3D2 工具](https://github.com/90135/COM3D2_Tools_901)
 
-<br>
-
-| 截图                        | 截图                        | 截图                        | 截图                        |
-|---------------------------|---------------------------|---------------------------|---------------------------|
-| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
-
-<br>
-<br>
-<br>
+| 截图 | 截图 | 截图 | 截图 |
+| -- | -- | -- | -- |
+| 1  | 2  | 3  | 4  |
 
 ---
-
-<br>
-<br>
-<br>
-
 
 ## 日本語
 
@@ -225,21 +208,22 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - **アンパック**：metadata、プレビュー画像、外部ストリームファイルを含まない純粋なリソースディレクトリとして抽出し、出力は Unity の型ごとにディレクトリ分けされます
 - **パック**：純粋なリソースディレクトリを Unity 2022.3.35f1 固定の ABA に戻し、対応する `.ct` も同時に生成し、パッカーが報告するゲーム読み込み時の警告を表示します
 - **プレビュー**：Texture2D と Sprite は直接画像にデコードし、テキストリソースは UTF-8 として表示します
-- **変換**：Texture2D/Sprite → PNG、Mesh/AnimationClip/Model → glTF/GLB、AudioClip → 生の音声、`.nei` → CSV、および各 KCES 構造化フォーマット → JSON。一括処理に対応し、結果を項目ごとに報告します
-- **エディターへ引き渡す**：アンパック結果のうち `.menuassets` のように編集ページを持つフォーマットは、ボタンまたはダブルクリックで `kces-mod-editor://` プロトコル経由で [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) で開けます。事前に当該ソフトウェアをインストールしてください
+- **変換**：Texture2D/Sprite → PNG、Mesh/AnimationClip/Model → glTF (glb)、AudioClip → 生の音声、`.nei` → CSV、および各 KCES 構造化フォーマット → JSON。一括処理に対応し、結果を項目ごとに報告します
+  - glTF/GLB へ変換する際は `.model` ファイルを変換してください。単体の `.mmesh` を直接変換すると不完全なファイルになります（スケルトン、スキニングウェイト、モーフターゲット、マテリアル名、UV1〜UV7 が欠落します）。詳細は [MeidoSerialization のコマンドライン資料](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-modelmeshanimationclipaudioclip) を参照してください
+- **エディターへ引き渡す**：アンパック結果のうち `.menuassets` のように編集ページを持つフォーマットは、ボタンまたはダブルクリックで `kces-mod-editor://` プロトコル経由で [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) で開けます。事前に当該ソフトウェアをインストールしてください
 - **外部からの呼び出し**：他のプログラムは `aba-explorer://open?path=<URL エンコードした絶対パス>` でファイルを開くよう要求できます。プロトコルが受け付けるのは `.aba`・`.asset_bg`・`.asset_scene`・`.ct` のみです。単一インスタンスは設定ページのスイッチで、有効なら呼び出しはすべて実行中のウィンドウに引き渡され、無効ならそれぞれ新しいウィンドウが開くため 2 つのコンテナを並べて比較できます
 - ファイルのドラッグ＆ドロップ、ファイル関連付けからの起動、`Ctrl+O` ショートカット、システムに追従するダークモード
 - 完全な多言語対応を備えています。言語を追加したい場合は、Issues または Pull Request でぜひご協力ください。
 
 ### 対応ファイル
 
-| 説明                                    | フォーマット                                                                                                                   |
-|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| Unity Bundle コンテナのアンパックとパック          | `.aba` `.asset_bg` `.asset_scene`                                                                                        |
-| コンテンツテーブルの閲覧と生成                       | `.ct`                                                                                                                    |
-| アンパック結果フォーマットの相互変換                    | アンパック結果と KCES ネイティブフォーマット（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes` など）                    |
+| 説明                          | フォーマット                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Unity Bundle コンテナのアンパックとパック | `.aba` `.asset_bg` `.asset_scene`                                                                       |
+| コンテンツテーブルの閲覧と生成             | `.ct`                                                                                                   |
+| アンパック結果フォーマットの相互変換          | アンパック結果と KCES ネイティブフォーマット（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes` など） |
 
-`.menuassets` のような個別フォーマットの構造化編集には [KCES_MOD_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) をご利用ください。
+`.menuassets` のような個別フォーマットの構造化編集には [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) をご利用ください。
 
 ### 依存関係
 
@@ -248,14 +232,14 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 - Microsoft Edge WebView2
   - 本アプリケーションは Wails 技術で開発されており、ページのレンダリングに Microsoft Edge WebView2 を利用するため、WebView2 のインストールが必要です。
   - Windows 11 をお使いの場合、通常は既にシステムにインストールされています。
-  - それ以外のシステムをお使いで WebView2 がインストールされていない場合、アプリケーション起動時にインストールを促されるはずです。
-    または公式サイトからインストールすることもできます：[https://developer.microsoft.com/ja-jp/microsoft-edge/webview2](https://developer.microsoft.com/ja-jp/microsoft-edge/webview2)
-  - Microsoft Edge WebView2
-    とは？[https://learn.microsoft.com/ja-jp/microsoft-edge/webview2/](https://learn.microsoft.com/ja-jp/microsoft-edge/webview2/)
+  - それ以外のシステムをお使いで WebView2 がインストールされていない場合、アプリケーション起動時にインストールを促されるはずです。  
+    または公式サイトからインストールすることもできます：<https://developer.microsoft.com/ja-jp/microsoft-edge/webview2>
+  - Microsoft Edge WebView2  
+    とは？<https://learn.microsoft.com/ja-jp/microsoft-edge/webview2/>
 - ImageMagick
   - .tex フォーマットや画像処理関連の機能を使用するには ImageMagick のインストールが必要です。これは可能な限り多くの画像フォーマットに対応するためです。.tex の編集を行わない場合は、インストールしないという選択も可能です。
-  - 公式サイトからインストールしてください：[https://imagemagick.org/download](https://imagemagick.org/download)
-  - ダウンロードページで `ImageMagick-バージョン番号-Q16-HDRI-x64-dll.exe` を見つけてダウンロードし、インストール時に
+  - 公式サイトからインストールしてください：<https://imagemagick.org/download>
+  - ダウンロードページで `ImageMagick-バージョン番号-Q16-HDRI-x64-dll.exe` を見つけてダウンロードし、インストール時に  
     `Add application directory to your system path` にチェックを入れてください。
   - またはターミナルで `winget install ImageMagick.Q16-HDRI` コマンドを実行してインストールしてください。
   - テストに使用したバージョンは `ImageMagick-7.1.2-30-Q16-HDRI-x64-dll.exe` です。問題が発生した場合はこのバージョンをお試しください。
@@ -272,11 +256,11 @@ Releases: [https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](h
 
 本ソフトウェアをダウンロードすることは、[免責事項](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER?tab=readme-ov-file#disclaimer)を受諾し、遵守することに同意したものとみなされます
 
-Github Releases
-からダウンロードしてください：[https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases)
+Github Releases  
+からダウンロードしてください：<https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 - エディターをシステムにインストールし、ファイルの種類を自動的に関連付けたい場合は `aba-explorer-amd64-installer.exe` をご利用ください
-    - ファイルの種類を関連付けると、ファイルごとに異なるアイコンが表示されます。アイコンのプレビューは[こちら](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build)をご覧ください
+  - ファイルの種類を関連付けると、ファイルごとに異なるアイコンが表示されます。アイコンのプレビューは[こちら](https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/tree/main/build)をご覧ください
 - インストールしたくない場合は `aba-explorer.exe` をご利用ください
 - Linux システムをお使いの場合は `aba-explorer_linux_amd64` をご利用ください
 
@@ -292,27 +276,11 @@ Github Releases
 - [90135 の COM3D2 スクリプト集](https://github.com/90135/COM3D2_Scripts_901)
 - [90135 の COM3D2 ツール](https://github.com/90135/COM3D2_Tools_901)
 
-<br>
-
-| スクリーンショット                 | スクリーンショット                 | スクリーンショット                 | スクリーンショット                 |
-|---------------------------|---------------------------|---------------------------|---------------------------|
-| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
-
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
+| スクリーンショット | スクリーンショット | スクリーンショット | スクリーンショット |
+| --------- | --------- | --------- | --------- |
+| 1         | 2         | 3         | 4         |
 
 ---
-
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
 
 # How to Dev
 
@@ -320,17 +288,13 @@ Github Releases
 2. Install [Golang](https://go.dev/)  latest version
 3. Run `go install github.com/wailsapp/wails/v3/cmd/wails3@latest`
 4. Install [Nodejs](https://nodejs.org/) v24 lts
-5. Install pnpm [https://pnpm.io/installation#installing-pnpm-12](https://pnpm.io/installation#installing-pnpm-12)
+5. Install pnpm <https://pnpm.io/installation#installing-pnpm-12>
 6. Run `cd .\frontend\` and `pnpm install`
-
-<br>
 
 - Run `wails3 dev` in project root to run in dev mode
 - Run `wails3 build` in project root to build project
 - Run `wails3 package` to get installer
 - This is a Wails v3 App. The front-end method is automatically generated after the back-end is bound.
-
-<br>
 
 # KISS Rule
 
@@ -371,11 +335,10 @@ KISS 規約
 ※これらの事項は https://kisskiss.tv/kiss/diary.php?no=558 を優先します。
 ```
 
-<br>
 
 # Disclaimer
 
-By downloading this software, you agree to read, accept and abide by this Disclaimer, this is a developer protection
+By downloading this software, you agree to read, accept and abide by this Disclaimer, this is a developer protection  
 measure and we apologize for any inconvenience this may cause.
 
 下载此软件即表示您已阅读且接受并同意遵守此免责声明，这是为了保护开发人员而采取的措施，对于由此造成的不便，我们深表歉意。
@@ -596,8 +559,6 @@ In case of any discrepancy between the translated versions, the Simplified Chine
      - 開発者は旧バージョンのセキュリティを維持する義務を負わないこと。
      - コードの独自修正は予期せぬ法的リスクを招く可能性があること。
 ```
-
-<br>
 
 # Credit
 

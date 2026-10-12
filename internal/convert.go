@@ -16,11 +16,14 @@ import (
 const maxConvertOutputBytes int64 = 10 << 30
 
 // 转换目标键，前端按键选择目标格式并做 i18n / Conversion target keys the frontend selects by and localizes
+// 3D 资源只保留 glb：glTF 的文本形态（.gltf 与外部 .bin）在多文件与贴图引用上更容易出问题，
+// 二进制的 glb 是自包含单文件，前端把它显示为 glTF(glb)
+// Only glb remains for 3D assets: the textual glTF form (a .gltf plus external .bin) is more error prone around multiple files and texture references,
+// while binary glb is a self-contained single file, shown in the frontend as glTF(glb)
 const (
 	targetJson  = "json"
 	targetPng   = "png"
 	targetGlb   = "glb"
-	targetGltf  = "gltf"
 	targetAudio = "audio"
 	targetCsv   = "csv"
 )
@@ -42,7 +45,7 @@ func NewConvertService() *ConvertService {
 
 // ConvertTarget 是一个文件可用的转换目标 / ConvertTarget is one available conversion target for a file
 type ConvertTarget struct {
-	Key string `json:"key"` // 目标键：json/png/glb/gltf/audio/csv / Target key: json/png/glb/gltf/audio/csv
+	Key string `json:"key"` // 目标键：json/png/glb/audio/csv / Target key: json/png/glb/audio/csv
 	Ext string `json:"ext"` // 输出扩展名，audio 在转换时探测所以为空 / Output extension, empty for audio which is detected at conversion time
 }
 
@@ -62,7 +65,7 @@ func (s *ConvertService) Targets(path string) []ConvertTarget {
 		targets = append(targets, ConvertTarget{Key: targetPng, Ext: ".png"})
 	}
 	if KCESService.IsKCESNativeMeshFile(path) || KCESService.IsKCESNativeAnimationClipFile(path) || KCESService.IsKCESModelFile(path) {
-		targets = append(targets, ConvertTarget{Key: targetGlb, Ext: ".glb"}, ConvertTarget{Key: targetGltf, Ext: ".gltf"})
+		targets = append(targets, ConvertTarget{Key: targetGlb, Ext: ".glb"})
 	}
 	if KCESService.IsKCESNativeAudioClipFile(path) {
 		targets = append(targets, ConvertTarget{Key: targetAudio})
@@ -150,11 +153,11 @@ func (s *ConvertService) Convert(ctx context.Context, path string, target string
 			outPath = replaceExt(path, ".png")
 		}
 		return outPath, s.convertToImage(ctx, path, outPath)
-	case targetGlb, targetGltf:
+	case targetGlb:
 		if outPath == "" {
-			outPath = replaceExt(path, "."+target)
+			outPath = replaceExt(path, ".glb")
 		}
-		return outPath, s.convertToGltf(ctx, path, outPath, target)
+		return outPath, s.convertToGltf(ctx, path, outPath)
 	case targetAudio:
 		return s.convertAudio(ctx, path, outPath)
 	case targetCsv:
@@ -237,18 +240,18 @@ func (s *ConvertService) convertToImage(ctx context.Context, path string, outPat
 	}
 }
 
-// convertToGltf 把 Model、Mesh 或 AnimationClip 导出为 glTF
+// convertToGltf 把 Model、Mesh 或 AnimationClip 导出为二进制 glTF（glb）
 // 独立 Mesh 只含几何体，带骨架的导出需要用 .model 作为输入
-// convertToGltf exports a Model, Mesh, or AnimationClip to glTF
+// convertToGltf exports a Model, Mesh, or AnimationClip to binary glTF (glb)
 // A standalone Mesh carries geometry only, and a skinned export needs the .model file as input
-func (s *ConvertService) convertToGltf(ctx context.Context, path string, outPath string, format string) error {
+func (s *ConvertService) convertToGltf(ctx context.Context, path string, outPath string) error {
 	switch {
 	case KCESService.IsKCESModelFile(path):
-		return s.model.ConvertModelToGLTF(ctx, path, outPath, format, maxConvertOutputBytes)
+		return s.model.ConvertModelToGLTF(ctx, path, outPath, targetGlb, maxConvertOutputBytes)
 	case KCESService.IsKCESNativeMeshFile(path):
-		return s.media.ConvertMeshToGLTF(ctx, path, outPath, format, maxConvertOutputBytes)
+		return s.media.ConvertMeshToGLTF(ctx, path, outPath, targetGlb, maxConvertOutputBytes)
 	case KCESService.IsKCESNativeAnimationClipFile(path):
-		return s.media.ConvertAnimationClipToGLTF(ctx, path, outPath, format, maxConvertOutputBytes)
+		return s.media.ConvertAnimationClipToGLTF(ctx, path, outPath, targetGlb, maxConvertOutputBytes)
 	default:
 		return fmt.Errorf("not a KCES Model, native Mesh, or native AnimationClip file: %s", path)
 	}

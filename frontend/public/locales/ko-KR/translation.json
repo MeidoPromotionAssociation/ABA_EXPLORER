@@ -35,8 +35,7 @@
   "Target": {
     "json": "JSON",
     "png": "PNG",
-    "glb": "GLB",
-    "gltf": "glTF",
+    "glb": "glTF(glb)",
     "audio": "오디오",
     "csv": "CSV"
   },
@@ -290,7 +289,12 @@
     "no_preview": "이 파일은 미리 볼 수 없습니다",
     "binary_content": "바이너리 내용입니다. 위의 변환 버튼으로 읽을 수 있는 형식으로 내보낸 뒤 확인하세요",
     "image_failed": "이미지 디코딩에 실패했습니다: {{reason}}",
-    "truncated": "내용이 길어 앞부분만 표시합니다"
+    "truncated": "내용이 길어 앞부분만 표시합니다",
+    "mesh_hint_title": "Model 변환을 권장합니다",
+    "mesh_hint_body": "Mesh는 지오메트리만 포함하므로 glb로 직접 변환하면 파일이 완전하지 않습니다(스켈레톤과 계층 정보 누락). 완전한 모델이 필요하면 대응하는 Model 파일을 변환하세요.",
+    "gltf_tooltip": "glTF로 변환할 때는 .model 파일을 변환하세요. 참조하는 .mmesh도 함께 처리됩니다. 단독 .mmesh를 직접 변환하면 스켈레톤, 스키닝 가중치, 모프 타깃, 머티리얼 이름이 빠진 불완전한 파일이 됩니다.",
+    "blender_tooltip": "Blender에서 glb를 사용할 때도 몇 가지 주의할 점이 있습니다. MeidoSerialization 문서를 참고하세요.",
+    "gltf_tooltip_link": "MeidoSerialization 문서 보기"
   },
   "PackPage": {
     "title": "ABA로 패킹",

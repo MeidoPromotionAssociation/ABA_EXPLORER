@@ -34,6 +34,23 @@ export const GitHubReleaseUrl = "https://github.com/MeidoPromotionAssociation/AB
 export const MeidoSerializationUrl = "https://github.com/MeidoPromotionAssociation/MeidoSerialization";
 export const ModEditorUrl = "https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR";
 
+// MeidoSerialization 命令行文档按语言分节，同一个 KCES Model/Mesh/AnimationClip/AudioClip 章节
+// 在三种语言里的标题不同，锚点也就各不相同；韩语没有对应章节，回落到英语
+// The MeidoSerialization CLI documentation is split by language, so the KCES Model/Mesh/AnimationClip/AudioClip
+// section carries a different anchor per language; Korean has no matching section and falls back to English
+const MeidoSerializationCliDocBase = "https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md";
+
+const MeidoSerializationCliDocAnchors: Record<string, string> = {
+    "en-US": "#kces-model-mesh-animationclip-and-audioclip",
+    "zh-CN": "#kces-modelmeshanimationclip-%E4%B8%8E-audioclip",
+    "ja-JP": "#kces-modelmeshanimationclipaudioclip",
+};
+
+/** meidoSerializationCliDocUrl 按界面语言返回 KCES Model/Mesh/AnimationClip/AudioClip 章节的链接 */
+export function meidoSerializationCliDocUrl(language: string): string {
+    return MeidoSerializationCliDocBase + (MeidoSerializationCliDocAnchors[language] ?? MeidoSerializationCliDocAnchors["en-US"]);
+}
+
 // 容器扩展名，用于在拖放与启动文件时判断该进入哪个页面
 // Container extensions used to route dropped and startup files to the right page
 export const ContainerExtensions = [".aba", ".asset_bg", ".asset_scene"];
@@ -71,8 +88,10 @@ export function typeColor(typeName: string): string | undefined {
 }
 
 // 转换目标的展示顺序，Convert 服务返回的目标按此排序
+// 3D 资源只提供 glb（展示为 glTF(glb)），不再单列 glTF
 // Display order for conversion targets returned by the Convert service
-export const TargetOrder = ["json", "png", "glb", "gltf", "audio", "csv"];
+// 3D assets only offer glb (shown as glTF(glb)), so glTF is no longer listed on its own
+export const TargetOrder = ["json", "png", "glb", "audio", "csv"];
 
 /** sortTargets 按展示顺序排列转换目标键 */
 export function sortTargets<T extends { key: string }>(targets: T[]): T[] {

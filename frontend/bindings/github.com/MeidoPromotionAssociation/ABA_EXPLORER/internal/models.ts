@@ -648,7 +648,7 @@ export class ConvertOutcome {
  */
 export class ConvertTarget {
     /**
-     * 目标键：json/png/glb/gltf/audio/csv / Target key: json/png/glb/gltf/audio/csv
+     * 目标键：json/png/glb/audio/csv / Target key: json/png/glb/audio/csv
      */
     "key": string;
 

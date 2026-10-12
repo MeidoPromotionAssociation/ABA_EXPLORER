@@ -35,8 +35,7 @@
   "Target": {
     "json": "JSON",
     "png": "PNG",
-    "glb": "GLB",
-    "gltf": "glTF",
+    "glb": "glTF(glb)",
     "audio": "Audio",
     "csv": "CSV"
   },
@@ -290,7 +289,12 @@
     "no_preview": "This file cannot be previewed",
     "binary_content": "Binary content. Use a conversion button above to export it into a readable format.",
     "image_failed": "Decoding the image failed: {{reason}}",
-    "truncated": "The content is long, so only the beginning is shown"
+    "truncated": "The content is long, so only the beginning is shown",
+    "mesh_hint_title": "Convert the Model instead",
+    "mesh_hint_body": "A Mesh carries geometry only, so converting it directly to glb produces an incomplete file (no skeleton or hierarchy). Convert the matching Model file when you need the full model.",
+    "gltf_tooltip": "Convert the .model file, which also handles the .mmesh it references. Converting a standalone .mmesh directly produces an incomplete file without the skeleton, skinning weights, morph targets, or material names.",
+    "blender_tooltip": "There are also a few things to watch out for when using the glb in Blender; see the MeidoSerialization documentation.",
+    "gltf_tooltip_link": "See the MeidoSerialization docs"
   },
   "PackPage": {
     "title": "Pack into ABA",

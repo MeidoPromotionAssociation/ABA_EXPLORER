@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Button, Descriptions, Divider, Empty, Space, Spin, Tag, theme, Typography} from "antd";
+import {Alert, Button, Descriptions, Divider, Empty, Space, Spin, Tag, theme, Tooltip, Typography} from "antd";
 import {EditOutlined, FolderOpenOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
+import {Browser} from "@wailsio/runtime";
 import {
     App as AppService,
     ConvertService,
@@ -11,7 +12,8 @@ import type {
     FilePreview,
     UnpackedFile,
 } from "../../../bindings/github.com/MeidoPromotionAssociation/ABA_EXPLORER/internal/models";
-import {sortTargets, typeColor} from "../../utils/consts";
+import {meidoSerializationCliDocUrl, sortTargets, typeColor} from "../../utils/consts";
+import {resolveUiLanguage} from "../../utils/i18n";
 import {openInModEditor} from "../../hooks/modEditor";
 import {appMessage as message, describeError} from "../../utils/feedback";
 import {baseName, formatBytes} from "../../utils/format";
@@ -109,6 +111,12 @@ const FilePreviewPanel: React.FC<{ file: UnpackedFile | null }> = ({file}) => {
         );
     }
 
+    // 独立 Mesh 只含几何体，直接转 glb 得到的文件不完整（缺骨架与层级），
+    // 需要完整模型时应当改转对应的 Model 文件，这里在信息区给出提示
+    // A standalone Mesh carries geometry only, so a direct glb export is incomplete,
+    // and the matching Model file is the right input for a full model, so the info area warns about it
+    const meshGltfHint = file.kind === "Mesh" && targets.some((target) => target.key === "glb");
+
     return (
         <div style={{height: "100%", display: "flex", flexDirection: "column", minHeight: 0, gap: 12, paddingLeft: 12}}>
             <Descriptions
@@ -134,23 +142,57 @@ const FilePreviewPanel: React.FC<{ file: UnpackedFile | null }> = ({file}) => {
                 ]}
             />
 
+            {meshGltfHint && (
+                <Alert
+                    showIcon
+                    description={t("FilePreviewPanel.mesh_hint_body")}
+                />
+            )}
+
             <Space wrap>
                 <Text strong>{t("FilePreviewPanel.convert_to")}</Text>
                 {targets.length === 0 ? (
                     <Text type="secondary">{t("FilePreviewPanel.no_targets")}</Text>
                 ) : (
-                    targets.map((target) => (
-                        <Button
-                            key={target.key}
-                            size="small"
-                            type="primary"
-                            ghost
-                            loading={converting === target.key}
-                            onClick={() => void convert(target)}
-                        >
-                            {t(`Target.${target.key}`)}
-                        </Button>
-                    ))
+                    targets.map((target) => {
+                        const button = (
+                            <Button
+                                size="small"
+                                type="primary"
+                                ghost
+                                loading={converting === target.key}
+                                onClick={() => void convert(target)}
+                            >
+                                {t(`Target.${target.key}`)}
+                            </Button>
+                        );
+                        // 3D 资源导出的是自包含 glb，按钮上挂一段提示：应当转换 .model（会带上它引用的 .mmesh），
+                        // 而不是直接转换独立的 .mmesh，并附上 MeidoSerialization 文档里对应语言章节的链接
+                        // A 3D export is a self-contained glb, and the button carries a note to convert the .model
+                        // (which pulls in the .mmesh it references) rather than a standalone .mmesh, plus a link to the matching language section
+                        return target.key === "glb" ? (
+                            <Tooltip
+                                key={target.key}
+                                styles={{root: {maxWidth: 380}}}
+                                title={
+                                    <div style={{display: "flex", flexDirection: "column", gap: 4}}>
+                                        <span>{t("FilePreviewPanel.gltf_tooltip")}</span>
+                                        <span>{t("FilePreviewPanel.blender_tooltip")}</span>
+                                        <a
+                                            style={{color: "inherit", textDecoration: "underline", cursor: "pointer"}}
+                                            onClick={() => Browser.OpenURL(meidoSerializationCliDocUrl(resolveUiLanguage()))}
+                                        >
+                                            {t("FilePreviewPanel.gltf_tooltip_link")}
+                                        </a>
+                                    </div>
+                                }
+                            >
+                                {button}
+                            </Tooltip>
+                        ) : (
+                            <React.Fragment key={target.key}>{button}</React.Fragment>
+                        );
+                    })
                 )}
                 <Divider vertical style={{margin: 0}}/>
                 {canModEdit && (

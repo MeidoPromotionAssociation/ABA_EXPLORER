@@ -35,8 +35,7 @@
   "Target": {
     "json": "JSON",
     "png": "PNG",
-    "glb": "GLB",
-    "gltf": "glTF",
+    "glb": "glTF(glb)",
     "audio": "音声",
     "csv": "CSV"
   },
@@ -290,7 +289,12 @@
     "no_preview": "このファイルはプレビューできません",
     "binary_content": "バイナリ内容です。上の変換ボタンで可読な形式に書き出してから確認してください",
     "image_failed": "画像のデコードに失敗しました：{{reason}}",
-    "truncated": "内容が長いため冒頭のみ表示しています"
+    "truncated": "内容が長いため冒頭のみ表示しています",
+    "mesh_hint_title": "Model の変換を推奨します",
+    "mesh_hint_body": "Mesh はジオメトリのみを含むため、直接 glb に変換すると完全なファイルになりません（スケルトンや階層が欠落します）。完全なモデルが必要な場合は、対応する Model ファイルを変換してください。",
+    "gltf_tooltip": "glTF へ変換する際は .model ファイルを変換してください。参照している .mmesh も一緒に処理されます。単体の .mmesh を直接変換すると、スケルトン、スキニングウェイト、モーフターゲット、マテリアル名が欠落した不完全なファイルになります。",
+    "blender_tooltip": "Blender で glb を使う際にもいくつか注意点があります。MeidoSerialization の資料をご参照ください。",
+    "gltf_tooltip_link": "MeidoSerialization のドキュメントを見る"
   },
   "PackPage": {
     "title": "ABA へパック",
