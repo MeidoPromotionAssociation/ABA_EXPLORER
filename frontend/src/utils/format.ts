@@ -34,6 +34,15 @@ export function baseName(path: string): string {
     return index >= 0 ? normalized.slice(index + 1) : normalized;
 }
 
+/** fileExtension 取文件名或路径的后缀名，带点并统一小写，没有后缀名时返回空串 */
+export function fileExtension(value: string): string {
+    const name = baseName(value);
+    const index = name.lastIndexOf(".");
+    // 点在开头（隐藏文件）或结尾（"name."）都不算后缀名
+    if (index <= 0 || index === name.length - 1) return "";
+    return name.slice(index).toLowerCase();
+}
+
 /** dirName 取路径的父目录，兼容正反斜杠 */
 export function dirName(path: string): string {
     const normalized = path.replace(/\\/g, "/").replace(/\/+$/, "");
@@ -52,4 +61,13 @@ export function joinPath(base: string, child: string): string {
 export function percent(numerator: number, denominator: number): string {
     if (!denominator) return "-";
     return `${((numerator / denominator) * 100).toFixed(1)}%`;
+}
+
+/**
+ * suggestExportName 给出导出容器对象时预填的文件名
+ * 图像类换成 .png，KCES 的贴图名本身常带 .tex；对象没有名字时用 PathID 兜底
+ */
+export function suggestExportName(name: string, pathId: string, png: boolean): string {
+    const base = name || `asset_${pathId}`;
+    return png ? base.replace(/\.tex$/i, "") + ".png" : base;
 }

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {Button, Card, Checkbox, Input, Modal, Select, Skeleton, Space, Splitter, Table, Tag, Typography,} from "antd";
-import {InboxOutlined, SwapOutlined} from "@ant-design/icons";
+import {Button, Card, Checkbox, Dropdown, Input, Modal, Select, Skeleton, Space, Splitter, Table, Tag, Tooltip, Typography,} from "antd";
+import {DownOutlined, InboxOutlined, SwapOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
 import {useNavigate} from "react-router-dom";
 import {
@@ -22,7 +22,7 @@ import {useDebouncedValue} from "../hooks/useDebouncedValue";
 import {openInModEditor} from "../hooks/modEditor";
 import {TargetOrder, typeColor} from "../utils/consts";
 import {appMessage as message, describeError} from "../utils/feedback";
-import {baseName, formatBytes, formatNumber} from "../utils/format";
+import {baseName, fileExtension, formatBytes, formatNumber} from "../utils/format";
 import {UnpackedFileTableWidthsKey} from "../utils/LocalStorageKeys";
 
 const {Text} = Typography;
@@ -42,6 +42,7 @@ const UnpackedPage: React.FC = () => {
     // 过滤走防抖，解包目录动辄上千个文件，每次按键都重算会卡手
     const debouncedSearch = useDebouncedValue(search);
     const [kindFilter, setKindFilter] = useState<string[]>([]);
+    const [extFilter, setExtFilter] = useState<string[]>([]);
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [activePath, setActivePath] = useState<string>("");
     const [batchTarget, setBatchTarget] = useState<string>("json");
@@ -94,14 +95,29 @@ const UnpackedPage: React.FC = () => {
             .map(([kind, count]) => ({value: kind, label: `${kind} (${count})`}));
     }, [files, t]);
 
+    // 后缀名筛选按磁盘上的真实文件名取后缀，比 Unity 类型目录更细（.model / .mmesh / .menuassets…）
+    // The extension filter reads the suffix from the real file name on disk, which is finer grained than the Unity type directory
+    const extOptions = useMemo(() => {
+        const counts = new Map<string, number>();
+        files.forEach((file) => {
+            const key = fileExtension(file.relPath) || t("Common.no_extension");
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+        });
+        return [...counts.entries()]
+            .sort((left, right) => right[1] - left[1])
+            .map(([ext, count]) => ({value: ext, label: `${ext} (${count})`}));
+    }, [files, t]);
+
     const rows = useMemo(() => {
         const keyword = debouncedSearch.trim().toLowerCase();
         return files.filter((file) => {
             if (kindFilter.length > 0 && !kindFilter.includes(file.kind || t("UnpackedPage.root"))) return false;
+            if (extFilter.length > 0
+                && !extFilter.includes(fileExtension(file.relPath) || t("Common.no_extension"))) return false;
             if (!keyword) return true;
             return file.relPath.toLowerCase().includes(keyword);
         });
-    }, [files, debouncedSearch, kindFilter, t]);
+    }, [files, debouncedSearch, kindFilter, extFilter, t]);
 
     const activeFile = useMemo(
         () => files.find((file) => file.absPath === activePath) ?? null,
@@ -240,20 +256,44 @@ const UnpackedPage: React.FC = () => {
                     onChange={setKindFilter}
                 />
                 <Select
-                    style={{width: 140}}
-                    value={batchTarget}
-                    onChange={setBatchTarget}
-                    options={TargetOrder.map((key) => ({value: key, label: t(`Target.${key}`)}))}
+                    allowClear
+                    mode="multiple"
+                    maxTagCount="responsive"
+                    placeholder={t("UnpackedPage.filter_ext")}
+                    style={{minWidth: 180}}
+                    options={extOptions}
+                    value={extFilter}
+                    onChange={setExtFilter}
                 />
-                <Button
-                    type="primary"
-                    icon={<SwapOutlined/>}
-                    disabled={selected.size === 0}
-                    loading={converting}
-                    onClick={() => void convertSelected()}
-                >
-                    {t("UnpackedPage.convert_selected", {count: selected.size})}
-                </Button>
+                {/* 转换目标挂在按钮上：主按钮按当前目标转换，右侧箭头换目标，筛选区只留筛选 */}
+                {/* The conversion target lives on the button: the main half converts with the current target and the arrow switches it */}
+                <Space.Compact>
+                    <Button
+                        type="primary"
+                        icon={<SwapOutlined/>}
+                        disabled={selected.size === 0}
+                        loading={converting}
+                        onClick={() => void convertSelected()}
+                    >
+                        {t("UnpackedPage.convert_selected", {count: selected.size})}
+                    </Button>
+                    <Tooltip title={t("UnpackedPage.choose_target")}>
+                        <Dropdown
+                            trigger={["click"]}
+                            disabled={selected.size === 0}
+                            menu={{
+                                items: TargetOrder.map((key) => ({key, label: t(`Target.${key}`)})),
+                                selectable: true,
+                                selectedKeys: [batchTarget],
+                                onClick: ({key}) => setBatchTarget(key),
+                            }}
+                        >
+                            <Button type="primary" disabled={selected.size === 0}>
+                                {t(`Target.${batchTarget}`)} <DownOutlined/>
+                            </Button>
+                        </Dropdown>
+                    </Tooltip>
+                </Space.Compact>
                 <Text type="secondary">
                     {t("UnpackedPage.count", {shown: rows.length, total: files.length})}
                 </Text>

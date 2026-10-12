@@ -1,9 +1,10 @@
 import React, {useMemo, useState} from "react";
-import {Button, Input, Select, Space, Tag, Typography} from "antd";
-import {DownloadOutlined} from "@ant-design/icons";
+import {Button, Input, Select, Space, Tag, Tooltip, Typography} from "antd";
+import {DownloadOutlined, EditOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
 import VirtualTable, {VirtualColumn} from "../common/VirtualTable";
 import {useDebouncedValue} from "../../hooks/useDebouncedValue";
+import {openAssetInModEditor} from "../../hooks/modEditor";
 import {
     AbaExplorerService,
     App as AppService,
@@ -15,7 +16,7 @@ import {typeColor} from "../../utils/consts";
 import {AssetTableWidthsKey} from "../../utils/LocalStorageKeys";
 import {toBigInt} from "../../utils/bigint";
 import {appMessage as message, describeError} from "../../utils/feedback";
-import {baseName, formatBytes, formatNumber} from "../../utils/format";
+import {baseName, fileExtension, formatBytes, formatNumber, suggestExportName} from "../../utils/format";
 
 const {Text} = Typography;
 
@@ -32,6 +33,8 @@ interface FlatAsset {
     size: number;
     offset: number;
     container: string;
+    /** 后端按 m_Name 判定的结果，决定这一行能不能交给 KCES MOD EDITOR */
+    modEditable: boolean;
 }
 
 interface AssetTableProps {
@@ -45,13 +48,6 @@ interface AssetTableProps {
 // Other types such as Mesh and AnimationClip need a rebuilt standalone Unity object and go through a full unpack
 const ExportableTypes = new Set(["TextAsset", "Texture2D", "Sprite"]);
 
-/** suggestExportName 给出导出时预填的文件名，图像类换成 .png，KCES 的贴图名本身常带 .tex */
-function suggestExportName(asset: FlatAsset): string {
-    const name = asset.name || `asset_${asset.pathId}`;
-    if (asset.typeName === "TextAsset") return name;
-    return name.replace(/\.tex$/i, "") + ".png";
-}
-
 /**
  * AssetTable 容器内全部 Unity 对象的表格
  * 一个 ABA 可以有多个 SerializedFile，这里拉平成一张表并保留来源列，
@@ -63,32 +59,46 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
     // 上万行的表格不能每次按键都重新过滤，输入框保持即时响应、过滤走防抖后的值
     const debouncedSearch = useDebouncedValue(search);
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
+    const [extFilter, setExtFilter] = useState<string[]>([]);
     const [sourceFilter, setSourceFilter] = useState<number[]>([]);
     const [exporting, setExporting] = useState("");
+    const [opening, setOpening] = useState("");
 
     // 导出单个对象：TextAsset 得到可直接使用的 KCES 文件，贴图与精灵解码成 PNG
     // Exporting one object: a TextAsset yields a usable KCES file while textures and sprites decode to PNG
     const exportAsset = async (asset: FlatAsset) => {
         if (!ExportableTypes.has(asset.typeName)) {
-            message.info(t("AssetTable.export_unsupported"));
+            message.info(t("Common.export_unsupported"));
             return;
         }
         setExporting(asset.pathId);
         try {
-            const suggested = suggestExportName(asset);
             const png = asset.typeName !== "TextAsset";
             const target = await AppService.SelectPathToSave(
                 png ? "*.png" : "*.*",
-                png ? t("AssetTable.png_filter") : t("AssetTable.any_filter"),
-                suggested
+                png ? t("Common.png_files") : t("Common.any_files"),
+                suggestExportName(asset.name, asset.pathId, png)
             );
             if (!target) return;
             await AbaExplorerService.ExportAsset(containerPath, asset.sourceName, asset.pathId, target);
-            message.success(t("AssetTable.exported", {name: baseName(target)}));
+            message.success(t("Common.exported", {name: baseName(target)}));
         } catch (error) {
             message.error(describeError(error));
         } finally {
             setExporting("");
+        }
+    };
+
+    // 容器里的对象没有磁盘路径，编辑器打不开，所以先导出到临时目录再交给它
+    // An object inside a container has no path on disk for the editor to open, so it is exported to the temporary directory first
+    const openInEditor = async (asset: FlatAsset) => {
+        setOpening(asset.pathId);
+        try {
+            await openAssetInModEditor(asset.name, () =>
+                AbaExplorerService.ExportAssetToTemp(containerPath, asset.sourceName, asset.pathId, asset.name)
+            );
+        } finally {
+            setOpening("");
         }
     };
 
@@ -107,6 +117,7 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
                     size: asset.size,
                     offset: asset.offset,
                     container: asset.container,
+                    modEditable: asset.modEditable,
                 });
             });
         });
@@ -124,10 +135,25 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
             .map(([name, count]) => ({value: name, label: `${name} (${count})`}));
     }, [allAssets]);
 
+    // 对象没有磁盘路径，后缀名只能从对象名上取（如 xxx.menuassets、xxx.tex），名字里没有点就归到"无后缀"
+    // Objects carry no path on disk, so the extension comes from the object name and anything without a dot lands in "no extension"
+    const extOptions = useMemo(() => {
+        const counts = new Map<string, number>();
+        allAssets.forEach((asset) => {
+            const key = fileExtension(asset.name) || t("Common.no_extension");
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+        });
+        return [...counts.entries()]
+            .sort((left, right) => right[1] - left[1])
+            .map(([ext, count]) => ({value: ext, label: `${ext} (${count})`}));
+    }, [allAssets, t]);
+
     const rows = useMemo(() => {
         const keyword = debouncedSearch.trim().toLowerCase();
         return allAssets.filter((asset) => {
             if (typeFilter.length > 0 && !typeFilter.includes(asset.typeName || `Type_${asset.typeId}`)) return false;
+            if (extFilter.length > 0
+                && !extFilter.includes(fileExtension(asset.name) || t("Common.no_extension"))) return false;
             if (sourceFilter.length > 0 && !sourceFilter.includes(asset.sourceIndex)) return false;
             if (!keyword) return true;
             return (
@@ -137,7 +163,7 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
                 asset.typeName.toLowerCase().includes(keyword)
             );
         });
-    }, [allAssets, debouncedSearch, typeFilter, sourceFilter]);
+    }, [allAssets, debouncedSearch, typeFilter, extFilter, sourceFilter, t]);
 
     const columns: VirtualColumn<FlatAsset>[] = [
         {
@@ -207,25 +233,43 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
     columns.push({
         key: "actions",
         title: "",
-        width: "100px",
+        width: "150px",
         align: "center",
         resizable: false,
-        render: (row) =>
-            ExportableTypes.has(row.typeName) ? (
-                <Button
-                    size="small"
-                    icon={<DownloadOutlined/>}
-                    loading={exporting === row.pathId}
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        void exportAsset(row);
-                    }}
-                >
-                    {t("AssetTable.export")}
-                </Button>
-            ) : (
-                ""
-            ),
+        render: (row) => {
+            const exportable = ExportableTypes.has(row.typeName);
+            if (!exportable && !row.modEditable) return "";
+            return (
+                <Space size={4}>
+                    {exportable && (
+                        <Button
+                            size="small"
+                            icon={<DownloadOutlined/>}
+                            loading={exporting === row.pathId}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void exportAsset(row);
+                            }}
+                        >
+                            {t("Common.export")}
+                        </Button>
+                    )}
+                    {row.modEditable && (
+                        <Tooltip title={t("ModEditor.open_in_editor")}>
+                            <Button
+                                size="small"
+                                icon={<EditOutlined/>}
+                                loading={opening === row.pathId}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void openInEditor(row);
+                                }}
+                            />
+                        </Tooltip>
+                    )}
+                </Space>
+            );
+        },
     });
 
     return (
@@ -247,6 +291,16 @@ const AssetTable: React.FC<AssetTableProps> = ({containerPath, serializedFiles})
                     options={typeOptions}
                     value={typeFilter}
                     onChange={setTypeFilter}
+                />
+                <Select
+                    allowClear
+                    mode="multiple"
+                    maxTagCount="responsive"
+                    placeholder={t("AssetTable.filter_ext")}
+                    style={{minWidth: 180}}
+                    options={extOptions}
+                    value={extFilter}
+                    onChange={setExtFilter}
                 />
                 {serializedFiles.length > 1 && (
                     <Select
