@@ -97,7 +97,7 @@ Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 | Screenshot | Screenshot | Screenshot | Screenshot |
 | ---------- | ---------- | ---------- | ---------- |
-| 1          | 2          | 3          | 4          |
+| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
 
 ---
 
@@ -191,7 +191,7 @@ Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 | 截图 | 截图 | 截图 | 截图 |
 | -- | -- | -- | -- |
-| 1  | 2  | 3  | 4  |
+| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
 
 ---
 
@@ -284,7 +284,7 @@ Github Releases
 
 | スクリーンショット | スクリーンショット | スクリーンショット | スクリーンショット |
 | --------- | --------- | --------- | --------- |
-| 1         | 2         | 3         | 4         |
+| ![1](.github/image/1.png) | ![2](.github/image/2.png) | ![3](.github/image/3.png) | ![4](.github/image/4.png) |
 
 ---
 
