@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	CRC3D3Service "github.com/MeidoPromotionAssociation/MeidoSerialization/v2/service/CRC3D3"
 	KCESService "github.com/MeidoPromotionAssociation/MeidoSerialization/v2/service/KCES"
 )
 
@@ -84,7 +85,8 @@ func (s *ConvertService) Targets(path string) []ConvertTarget {
 // supportsJsonConversion reports whether a file has a structured JSON conversion service
 // The set matches MeidoSerialization's convert2json CLI
 func supportsJsonConversion(path string) bool {
-	return KCESService.IsKCESBridgeSessionFile(path) ||
+	return CRC3D3Service.IsCRC3D3NeimpFile(path) ||
+		KCESService.IsKCESBridgeSessionFile(path) ||
 		KCESService.IsKCESGP03BridgeFile(path) ||
 		KCESService.IsKCESExportNameMapFile(path) ||
 		KCESService.IsKCESSavedAttachFile(path) ||
@@ -103,11 +105,15 @@ func supportsJsonConversion(path string) bool {
 }
 
 // convertToJson 按 MeidoSerialization CLI 的判定顺序分发到对应的结构化 JSON 转换服务
-// .perset 排在 .preset 之前，因为 IsKCESPresetFile 同时匹配两种扩展名
+// .neimp 排在 COM3D2/KCES 之前，CLI 也是在探测旧格式之前先认领它；.perset 排在 .preset 之前，
+// 因为 IsKCESPresetFile 同时匹配两种扩展名
 // convertToJson dispatches to the matching structured JSON conversion service in MeidoSerialization's CLI order
-// .perset comes before .preset because IsKCESPresetFile matches both extensions
+// .neimp comes before COM3D2/KCES because the CLI claims it before probing the legacy formats, and .perset comes
+// before .preset because IsKCESPresetFile matches both extensions
 func (s *ConvertService) convertToJson(ctx context.Context, path string, outPath string) error {
 	switch {
+	case CRC3D3Service.IsCRC3D3NeimpFile(path):
+		return (&CRC3D3Service.NeimpService{}).ConvertNeimpToJSON(ctx, path, outPath, maxConvertOutputBytes)
 	case KCESService.IsKCESBridgeSessionFile(path):
 		return (&KCESService.BridgeSessionService{}).ConvertBridgeSessionToJSON(ctx, path, outPath, maxConvertOutputBytes)
 	case KCESService.IsKCESGP03BridgeFile(path):

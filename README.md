@@ -25,7 +25,7 @@ Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/M
 - **Unpacking**: extract into a pure asset directory without metadata, preview images or external stream files, with output organized into directories by Unity type
 - **Packing**: pack a pure asset directory back into an ABA fixed at Unity 2022.3.35f1, generate the matching `.ct` at the same time, and show the in-game loading warnings reported by the packer
 - **Preview**: Texture2D and Sprite are decoded directly into images, text assets are shown as UTF-8
-- **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF (glb), AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting
+- **Conversion**: Texture2D/Sprite → PNG, Mesh/AnimationClip/Model → glTF (glb), AudioClip → raw audio, `.nei` → CSV, and each structured KCES format → JSON, with batch support and per-item result reporting. `.neimp`, the MessagePack successor of `.nei`, converts to JSON as well
   - Converting to glTF/GLB must be run on the `.model` file. Converting a standalone `.mmesh` directly produces an incomplete file: no skeleton, skinning weights, morph targets, material names, or UV1 through UV7. See the [MeidoSerialization CLI documentation](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-model-mesh-animationclip-and-audioclip) for details
   - Opening or re-exporting the result in Blender needs a few glTF importer and exporter settings: uncheck Guess Original Bind Pose and pick a suitable Bone Dir on import, and enable Tangents and Shape Key Tangents while keeping Shape Key Normals checked on export. The same [documentation section](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-model-mesh-animationclip-and-audioclip) lists them
   - Sprite → PNG is one-way: a Sprite stores no pixels, so to change how a sprite looks, edit the Texture2D it resolves to and repack, keeping the file name and the pixel dimensions unchanged. See the [MeidoSerialization CLI documentation](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#editing-a-sprite)
@@ -36,11 +36,11 @@ Based on the [MeidoSerialization](https://github.com/MeidoPromotionAssociation/M
 
 ### Supported files
 
-| Description                                   | Formats                                                                                                                   |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Unpacking and packing Unity Bundle containers | `.aba` `.asset_bg` `.asset_scene`                                                                                         |
-| Viewing and generating content tables         | `.ct`                                                                                                                     |
-| Conversion between unpacked asset formats     | Unpacked output and KCES native formats (`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes`, etc.) |
+| Description                                   | Formats                                                                                                                       |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Unpacking and packing Unity Bundle containers | `.aba` `.asset_bg` `.asset_scene`                                                                                             |
+| Viewing and generating content tables         | `.ct`                                                                                                                         |
+| Conversion between unpacked asset formats     | Unpacked output and native formats (`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.nei` `.neimp`, etc.) |
 
 For structured editing of individual formats such as `.menuassets`, please use [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR).
 
@@ -118,7 +118,7 @@ Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 - **解包**：提取为不含 metadata、预览图与外部流文件的纯资源目录，产物按 Unity 类型分目录
 - **打包**：把纯资源目录打回固定 Unity 2022.3.35f1 的 ABA，同时生成配套 `.ct`，并展示打包器给出的游戏加载警告
 - **预览**：Texture2D 与 Sprite 直接解码成图片，文本资源按 UTF-8 展示
-- **转换**：Texture2D/Sprite → PNG，Mesh/AnimationClip/Model → glTF (glb)，AudioClip → 原始音频，`.nei` → CSV，以及各 KCES 结构化格式 → JSON，支持批量并逐条报告结果
+- **转换**：Texture2D/Sprite → PNG，Mesh/AnimationClip/Model → glTF (glb)，AudioClip → 原始音频，`.nei` → CSV，以及各 KCES 结构化格式 → JSON，支持批量并逐条报告结果。`.nei` 的 MessagePack 后继格式 `.neimp` 同样可转 JSON
   - 转换为 glTF/GLB 时请对 `.model` 文件执行转换。直接转换独立的 `.mmesh` 得到的文件不完整：缺少骨架、蒙皮权重、变形目标、材质名与 UV1–UV7。详见 [MeidoSerialization 命令行文档](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-modelmeshanimationclip-%E4%B8%8E-audioclip)
   - 在 Blender 里打开或再导出时，glTF 导入器与导出器还有几项参数需要注意：导入时取消勾选 Guess Original Bind Pose 并选择合适的 Bone Dir，导出时勾选 Tangents 与 Shape Key Tangents、并保留 Shape Key Normals。同一篇[文档](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-modelmeshanimationclip-%E4%B8%8E-audioclip)里都有说明
   - Sprite → PNG 是单向的：Sprite 不存储像素，要修改它的外观，请编辑它引用的 Texture2D 后重新打包，并保持文件名与像素尺寸不变。详见 [MeidoSerialization 命令行文档](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#%E4%BF%AE%E6%94%B9-sprite)
@@ -130,11 +130,11 @@ Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 ### 支持的文件
 
-| 描述                   | 格式                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| 解包和打包Unity Bundle 容器 | `.aba` `.asset_bg` `.asset_scene`                                                            |
-| 查看和生成内容表             | `.ct`                                                                                        |
-| 解包产物格式互转             | 解包产物与 KCES 原生格式（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes` 等） |
+| 描述                        | 格式                                                                                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 解包和打包Unity Bundle 容器 | `.aba` `.asset_bg` `.asset_scene`                                                                           |
+| 查看和生成内容表            | `.ct`                                                                                                       |
+| 解包产物格式互转            | 解包产物与原生格式（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.nei` `.neimp` 等） |
 
 `.menuassets` 这类单个格式的结构化编辑请使用 [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR)。
 
@@ -212,7 +212,7 @@ Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 - **アンパック**：metadata、プレビュー画像、外部ストリームファイルを含まない純粋なリソースディレクトリとして抽出し、出力は Unity の型ごとにディレクトリ分けされます
 - **パック**：純粋なリソースディレクトリを Unity 2022.3.35f1 固定の ABA に戻し、対応する `.ct` も同時に生成し、パッカーが報告するゲーム読み込み時の警告を表示します
 - **プレビュー**：Texture2D と Sprite は直接画像にデコードし、テキストリソースは UTF-8 として表示します
-- **変換**：Texture2D/Sprite → PNG、Mesh/AnimationClip/Model → glTF (glb)、AudioClip → 生の音声、`.nei` → CSV、および各 KCES 構造化フォーマット → JSON。一括処理に対応し、結果を項目ごとに報告します
+- **変換**：Texture2D/Sprite → PNG、Mesh/AnimationClip/Model → glTF (glb)、AudioClip → 生の音声、`.nei` → CSV、および各 KCES 構造化フォーマット → JSON。一括処理に対応し、結果を項目ごとに報告します。`.nei` の MessagePack 後継フォーマット `.neimp` も JSON に変換できます
   - glTF/GLB へ変換する際は `.model` ファイルを変換してください。単体の `.mmesh` を直接変換すると不完全なファイルになります（スケルトン、スキニングウェイト、モーフターゲット、マテリアル名、UV1〜UV7 が欠落します）。詳細は [MeidoSerialization のコマンドライン資料](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-modelmeshanimationclipaudioclip) を参照してください
   - Blender で開いたり再エクスポートしたりする際は、glTF インポーターとエクスポーターにいくつか設定すべき項目があります。インポート時は Guess Original Bind Pose のチェックを外して適切な Bone Dir を選び、エクスポート時は Tangents と Shape Key Tangents を有効にし、Shape Key Normals を残してください。同じ[資料](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#kces-modelmeshanimationclipaudioclip)に記載されています
   - Sprite → PNG は一方通行です。Sprite はピクセルを保持しないため、見た目を変更するには参照している Texture2D を編集して再パックしてください。ファイル名とピクセル寸法は変えないでください。詳細は [MeidoSerialization のコマンドライン資料](https://github.com/MeidoPromotionAssociation/MeidoSerialization/blob/main/docs/cli-document.md#sprite-%E3%81%AE%E7%B7%A8%E9%9B%86) を参照してください
@@ -223,11 +223,11 @@ Releases: <https://github.com/MeidoPromotionAssociation/ABA_EXPLORER/releases>
 
 ### 対応ファイル
 
-| 説明                          | フォーマット                                                                                                  |
-| --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Unity Bundle コンテナのアンパックとパック | `.aba` `.asset_bg` `.asset_scene`                                                                       |
-| コンテンツテーブルの閲覧と生成             | `.ct`                                                                                                   |
-| アンパック結果フォーマットの相互変換          | アンパック結果と KCES ネイティブフォーマット（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.bytes` など） |
+| 説明                                      | フォーマット                                                                                                                      |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Unity Bundle コンテナのアンパックとパック | `.aba` `.asset_bg` `.asset_scene`                                                                                                 |
+| コンテンツテーブルの閲覧と生成            | `.ct`                                                                                                                             |
+| アンパック結果フォーマットの相互変換      | アンパック結果とネイティブフォーマット（`.menuassets` `.model` `.texture2d` `.mmesh` `.anm` `.audioclip` `.nei` `.neimp` など） |
 
 `.menuassets` のような個別フォーマットの構造化編集には [KCES\_MOD\_EDITOR](https://github.com/MeidoPromotionAssociation/KCES_MOD_EDITOR) をご利用ください。
 
