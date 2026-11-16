@@ -29,7 +29,7 @@ var modEditorExtensions = []string{
 	// 角色 / Character
 	".preset", ".perset", ".sad", ".hitcheck",
 	// 数据 / Data
-	".nson", ".undressdat", ".undresspdat", ".psk", ".nei", ".csv",
+	".nson", ".undressdat", ".undresspdat", ".psk", ".nei", ".csv", ".neimp",
 }
 
 // CanOpenInModEditor 判断文件是否为 KCES MOD EDITOR 能编辑的格式
