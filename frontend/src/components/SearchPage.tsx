@@ -1,10 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {Alert, Button, Card, Collapse, Input, Progress, Select, Space, Switch, Tag, Tooltip, Typography,} from "antd";
+import {Alert, Button, Card, Collapse, Input, Modal, Progress, Select, Space, Switch, Tag, Tooltip, Typography,} from "antd";
 import {
+    CloseOutlined,
     DatabaseOutlined,
     DownloadOutlined,
     EditOutlined,
     FolderOpenOutlined,
+    PlusOutlined,
     ReloadOutlined,
     SearchOutlined,
     StopOutlined,
@@ -33,7 +35,13 @@ import {useDebouncedValue} from "../hooks/useDebouncedValue";
 import {openAssetInModEditor} from "../hooks/modEditor";
 import {appMessage as message, describeError} from "../utils/feedback";
 import {baseName, formatNumber, suggestExportName} from "../utils/format";
-import {SearchDeepKey, SearchHitTableWidthsKey, SearchRootKey} from "../utils/LocalStorageKeys";
+import {
+    LegacySearchRootKey,
+    SearchAutoUpdateKey,
+    SearchDeepKey,
+    SearchHitTableWidthsKey,
+    SearchRootsKey,
+} from "../utils/LocalStorageKeys";
 
 const {Text, Paragraph} = Typography;
 
@@ -50,6 +58,35 @@ const OriginColors: Record<string, string> = {
 // 一次查询最多取回的条数，与后端 maxSearchLimit 保持一致
 // The most hits one query fetches, kept in step with maxSearchLimit on the backend
 const HitLimit = 5000;
+
+/**
+ * readSavedRoots 读回上次索引的目录列表
+ *
+ * 索引允许覆盖多个目录，而它们可能散落在不同的硬盘上，所以只能一次选一个、逐个累加。
+ * 旧版本只存一个目录，那个键还在的话迁移过来，用户升级后不必重选。
+ */
+const readSavedRoots = (): string[] => {
+    const saved = localStorage.getItem(SearchRootsKey);
+    if (saved) {
+        try {
+            const parsed: unknown = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+                return parsed.filter((item): item is string => typeof item === "string" && item.length > 0);
+            }
+        } catch {
+            // 存坏了就当没有，下面退回旧键
+            // A corrupt value is treated as absent and the legacy key is tried below
+        }
+    }
+    const legacy = localStorage.getItem(LegacySearchRootKey);
+    return legacy ? [legacy] : [];
+};
+
+// writeSavedRoots 把目录列表写回本地存储，只留一份真实来源，避免状态与存储各说一套
+// writeSavedRoots persists the root list so the state and the stored value never disagree
+const writeSavedRoots = (roots: string[]) => {
+    localStorage.setItem(SearchRootsKey, JSON.stringify(roots));
+};
 
 /**
  * hitBusyKey 标识"某一行正在做某个动作"，只用来把那一行的按钮换成加载态
@@ -69,13 +106,21 @@ const SearchPage: React.FC = () => {
     const {t} = useTranslation();
     const navigate = useNavigate();
 
-    const [root, setRoot] = useState(() => localStorage.getItem(SearchRootKey) ?? "");
+    const [roots, setRoots] = useState<string[]>(readSavedRoots);
     const [deep, setDeep] = useState(() => localStorage.getItem(SearchDeepKey) !== "false");
+    // 默认关：进页面就自动扫盘是件该由用户点头的事，装好目录后自己打开即可
+    // Off by default: scanning on page entry should be the user's call, and turning it on after setting up
+    // the directories is one click
+    const [autoUpdate, setAutoUpdate] = useState(() => localStorage.getItem(SearchAutoUpdateKey) === "true");
     const [stats, setStats] = useState<IndexStats | null>(null);
     const [progress, setProgress] = useState<IndexProgress | null>(null);
     const [building, setBuilding] = useState(false);
     const [facets, setFacets] = useState<IndexFacets | null>(null);
     const [restoring, setRestoring] = useState(false);
+    // 管理索引目录的弹窗，draft 是弹窗里那份可改的副本
+    // The manage-directories modal, with draft as the editable copy shown inside it
+    const [managing, setManaging] = useState(false);
+    const [draft, setDraft] = useState<string[]>([]);
 
     const [keyword, setKeyword] = useState("");
     const debouncedKeyword = useDebouncedValue(keyword, 250);
@@ -104,16 +149,66 @@ const SearchPage: React.FC = () => {
             setBuilding(status?.building ?? false);
             // 只在本地没有选择时补上后端记录的根目录：用户刚选好还没建索引就切走再回来，
             // 这里若无条件覆盖会把他的选择抹掉换成上一次索引的目录
-            // Only fill in the backend's root when there is no local choice: if the user picks a directory,
+            // Only fill in the backend's roots when there is no local choice: if the user picks directories,
             // navigates away before building and comes back, an unconditional overwrite would replace
-            // their pick with the previously indexed directory
-            if (status?.root) setRoot((current) => current || status.root);
+            // their pick with the previously indexed directories
+            if (status?.roots?.length) {
+                setRoots((current) => {
+                    if (current.length > 0) return current;
+                    writeSavedRoots(status.roots);
+                    return status.roots;
+                });
+            }
             return status;
         } catch (error) {
             console.warn("read index status failed:", error);
             return null;
         }
     }, []);
+
+    const buildIndex = async (refresh = false) => {
+        if (roots.length === 0) {
+            message.warning(t("SearchPage.no_root"));
+            return;
+        }
+        writeSavedRoots(roots);
+        localStorage.setItem(SearchDeepKey, String(deep));
+        setBuilding(true);
+        setProgress(null);
+        try {
+            const result = await SearchService.BuildIndex({roots, deep, refresh});
+            setStats(result);
+            // 后端会去掉重复与被包含的目录，列表跟着它走，界面显示的就是真正被索引的那些
+            // The backend drops duplicates and nested directories, so the list follows it and shows exactly
+            // what got indexed
+            if (result?.roots?.length) {
+                writeSavedRoots(result.roots);
+                setRoots(result.roots);
+            }
+            setFacets(await SearchService.Facets());
+            if (result?.cancelled) {
+                message.info(t("SearchPage.build_cancelled"));
+            } else {
+                message.success(t("SearchPage.build_done", {
+                    names: formatNumber(result?.names ?? 0),
+                    seconds: ((result?.elapsedMs ?? 0) / 1000).toFixed(1),
+                }));
+            }
+        } catch (error) {
+            message.error(describeError(error));
+        } finally {
+            setBuilding(false);
+            setProgress(null);
+        }
+    };
+
+    const cancelBuild = async () => {
+        try {
+            await SearchService.CancelIndex();
+        } catch (error) {
+            message.error(describeError(error));
+        }
+    };
 
     // 索引常驻后端，切走再回来要把状态读回来，否则页面看起来像没建过索引
     // 后端还没有索引时再试一次磁盘缓存：全部文件都没变过就能直接恢复，用户不必重新等一次扫描
@@ -124,14 +219,30 @@ const SearchPage: React.FC = () => {
         let cancelled = false;
         (async () => {
             const status = await refreshStatus();
-            if (cancelled || status?.ready || status?.building) return;
-            const savedRoot = localStorage.getItem(SearchRootKey) ?? "";
-            if (!savedRoot) return;
+            // 后端已经有一个构建在跑时什么也别做：再发一次会被直接拒绝，等它跑完就是了
+            // Do nothing while a build is already running: another one would be rejected outright, and
+            // waiting for the running one is the right answer
+            if (cancelled || status?.building) return;
+            const savedRoots = readSavedRoots();
+            if (savedRoots.length === 0) return;
+            // 开了自动更新就直接走构建：构建本身会沿用每个目录的缓存，只重扫变动过和新增的文件，
+            // 先装载一遍缓存再构建等于把同一批文件状态查两遍
+            // With auto update on, go straight to a build: it reuses each root's cache and reparses only
+            // changed and new files, so restoring the cache first would repeat the same stat calls
+            if (autoUpdate) {
+                await buildIndex(false);
+                return;
+            }
+            if (status?.ready) return;
             try {
                 setRestoring(true);
-                const loaded = await SearchService.LoadCachedIndex({root: savedRoot, deep, refresh: false});
+                const loaded = await SearchService.LoadCachedIndex({roots: savedRoots, deep, refresh: false});
                 if (cancelled || !loaded?.ready) return;
                 setStats(loaded);
+                if (loaded.roots?.length) {
+                    writeSavedRoots(loaded.roots);
+                    setRoots(loaded.roots);
+                }
                 setFacets(await SearchService.Facets());
             } catch (error) {
                 console.warn("restore the cached index failed:", error);
@@ -142,8 +253,9 @@ const SearchPage: React.FC = () => {
         return () => {
             cancelled = true;
         };
-        // 只在挂载时恢复一次，deep 开关变化不该悄悄换掉已经装好的索引
-        // Restore only once on mount, since flipping deep must not silently swap an already loaded index
+        // 只在挂载时恢复一次，deep 与自动更新开关的变化不该悄悄换掉已经装好的索引
+        // Restore only once on mount, since flipping deep or the auto-update switch must not silently swap
+        // an already loaded index
     }, []);
 
     useEffect(() => {
@@ -188,56 +300,39 @@ const SearchPage: React.FC = () => {
         void runSearch();
     }, [runSearch, stats?.ready, stats?.names]);
 
-    const chooseRoot = useCallback(async () => {
+    // 管理弹窗里改的是一份草稿，点"确定"才落到页面状态上：中途关掉弹窗不该悄悄改掉索引目录
+    // The modal edits a draft and only commits on OK, so closing it halfway must not silently change the
+    // index directories
+    const openManageRoots = useCallback(() => {
+        setDraft(roots);
+        setManaging(true);
+    }, [roots]);
+
+    // 每次只选一个目录并累加到草稿：资源目录常常散落在不同的硬盘上，一次多选反而不好挑
+    // One directory per pick, appended to the draft: resource directories often sit on different drives,
+    // and a single multi-select dialog makes that harder to navigate
+    const addDraftRoot = async () => {
         try {
             const directory = await AppService.SelectDirectory(t("SearchPage.choose_root"));
             if (!directory) return;
-            setRoot(directory);
-            localStorage.setItem(SearchRootKey, directory);
-        } catch (error) {
-            message.error(describeError(error));
-        }
-    }, [t]);
-
-    // 本页的"打开"就是选索引根目录
-    useProvideOpenAction(t("SearchPage.choose_root"), chooseRoot);
-
-    const buildIndex = async (refresh = false) => {
-        if (!root) {
-            message.warning(t("SearchPage.no_root"));
-            return;
-        }
-        localStorage.setItem(SearchRootKey, root);
-        localStorage.setItem(SearchDeepKey, String(deep));
-        setBuilding(true);
-        setProgress(null);
-        try {
-            const result = await SearchService.BuildIndex({root, deep, refresh});
-            setStats(result);
-            setFacets(await SearchService.Facets());
-            if (result?.cancelled) {
-                message.info(t("SearchPage.build_cancelled"));
-            } else {
-                message.success(t("SearchPage.build_done", {
-                    names: formatNumber(result?.names ?? 0),
-                    seconds: ((result?.elapsedMs ?? 0) / 1000).toFixed(1),
-                }));
-            }
-        } catch (error) {
-            message.error(describeError(error));
-        } finally {
-            setBuilding(false);
-            setProgress(null);
-        }
-    };
-
-    const cancelBuild = async () => {
-        try {
-            await SearchService.CancelIndex();
+            setDraft((current) => (current.includes(directory) ? current : [...current, directory]));
         } catch (error) {
             message.error(describeError(error));
         }
     };
+
+    const removeDraftRoot = (directory: string) => {
+        setDraft((current) => current.filter((item) => item !== directory));
+    };
+
+    const confirmManageRoots = () => {
+        writeSavedRoots(draft);
+        setRoots(draft);
+        setManaging(false);
+    };
+
+    // 本页的"打开"就是打开索引目录管理弹窗
+    useProvideOpenAction(t("SearchPage.manage_roots"), openManageRoots);
 
     const openContainer = (hit: SearchHit) => {
         if (!hit.containerPath) {
@@ -470,12 +565,9 @@ const SearchPage: React.FC = () => {
             styles={{body: {flex: 1, minHeight: 0, display: "flex", flexDirection: "column", padding: 16}}}
         >
             <Space wrap style={{marginBottom: 12}}>
-                <Button icon={<FolderOpenOutlined/>} onClick={chooseRoot}>
-                    {t("SearchPage.choose_root")}
+                <Button icon={<FolderOpenOutlined/>} onClick={openManageRoots}>
+                    {t("SearchPage.manage_roots")}
                 </Button>
-                <Text type="secondary" style={{maxWidth: 420}} ellipsis={{tooltip: root}}>
-                    {root || t("SearchPage.no_root_yet")}
-                </Text>
                 <Tooltip title={t("SearchPage.deep_tip")}>
                     <Space size={6}>
                         <Switch
@@ -490,12 +582,26 @@ const SearchPage: React.FC = () => {
                         <Text style={{fontSize: 13}}>{t("SearchPage.deep")}</Text>
                     </Space>
                 </Tooltip>
+                <Tooltip title={t("SearchPage.auto_update_tip")}>
+                    <Space size={6}>
+                        <Switch
+                            size="small"
+                            checked={autoUpdate}
+                            disabled={building}
+                            onChange={(checked) => {
+                                setAutoUpdate(checked);
+                                localStorage.setItem(SearchAutoUpdateKey, String(checked));
+                            }}
+                        />
+                        <Text style={{fontSize: 13}}>{t("SearchPage.auto_update")}</Text>
+                    </Space>
+                </Tooltip>
                 <Tooltip title={t("SearchPage.build_tip")}>
                     <Button
                         type="primary"
                         icon={<DatabaseOutlined/>}
                         loading={building || restoring}
-                        disabled={!root}
+                        disabled={roots.length === 0}
                         onClick={() => void buildIndex(false)}
                     >
                         {stats?.ready ? t("SearchPage.update") : t("SearchPage.build")}
@@ -636,9 +742,6 @@ const SearchPage: React.FC = () => {
                 <div style={{flex: 1, display: "flex", alignItems: "center", justifyContent: "center"}}>
                     <div style={{maxWidth: 520, textAlign: "center"}}>
                         <Paragraph>{t("SearchPage.intro")}</Paragraph>
-                        <Paragraph type="secondary" style={{fontSize: 12}}>
-                            {t("SearchPage.intro_hint")}
-                        </Paragraph>
                     </div>
                 </div>
             ) : (
@@ -651,6 +754,60 @@ const SearchPage: React.FC = () => {
                     emptyText={searching ? t("SearchPage.searching") : t("SearchPage.empty")}
                 />
             )}
+
+            <Modal
+                open={managing}
+                title={t("SearchPage.manage_roots")}
+                width={620}
+                okText={t("Common.ok")}
+                cancelText={t("Common.cancel")}
+                onOk={confirmManageRoots}
+                onCancel={() => setManaging(false)}
+                destroyOnHidden
+            >
+                <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8}}>
+                    <Text type="secondary" style={{fontSize: 12}}>
+                        {t("SearchPage.roots_hint")}
+                    </Text>
+                    <Button size="small" icon={<PlusOutlined/>} onClick={() => void addDraftRoot()}>
+                        {t("SearchPage.choose_root")}
+                    </Button>
+                </div>
+                {draft.length === 0 ? (
+                    <div style={{padding: "24px 0", textAlign: "center"}}>
+                        <Text type="secondary" style={{fontSize: 12}}>
+                            {t("SearchPage.no_root_yet")}
+                        </Text>
+                    </div>
+                ) : (
+                    <div style={{maxHeight: 320, overflow: "auto"}}>
+                        {draft.map((directory) => (
+                            <div
+                                key={directory}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 6,
+                                    padding: "2px 4px",
+                                }}
+                            >
+                                <FolderOpenOutlined style={{fontSize: 12, opacity: 0.45}}/>
+                                <Text style={{flex: 1, minWidth: 0, fontSize: 13}} ellipsis={{tooltip: directory}}>
+                                    {directory}
+                                </Text>
+                                <Tooltip title={t("SearchPage.remove_root")}>
+                                    <Button
+                                        type="text"
+                                        size="small"
+                                        icon={<CloseOutlined style={{fontSize: 11}}/>}
+                                        onClick={() => removeDraftRoot(directory)}
+                                    />
+                                </Tooltip>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </Modal>
         </Card>
     );
 };

@@ -1310,9 +1310,13 @@ export class IndexFacets {
  */
 export class IndexOptions {
     /**
-     * 要扫描的根目录 / Root directory to scan
+     * Roots 是要扫描的根目录，可以给多个，索引会把它们并成一份
+     * 互相包含的目录只保留外层那个：内层已经被外层覆盖，重复扫描只是白花时间
+     * Roots lists the directories to scan, more than one is allowed and they are merged into a single index
+     * A directory nested inside another is dropped because the outer one already covers it, and scanning it
+     * again would only waste time
      */
-    "root": string;
+    "roots": string[];
 
     /**
      * Deep 打开后会解析 .menuassets/.materialassets/.pmatassets，取出 .menu/.mate/.pmat 这些
@@ -1333,8 +1337,8 @@ export class IndexOptions {
 
     /** Creates a new IndexOptions instance. */
     constructor($$source: Partial<IndexOptions> = {}) {
-        if (!("root" in $$source)) {
-            this["root"] = "";
+        if (!("roots" in $$source)) {
+            this["roots"] = [];
         }
         if (!("deep" in $$source)) {
             this["deep"] = false;
@@ -1350,7 +1354,11 @@ export class IndexOptions {
      * Creates a new IndexOptions instance from a string or object.
      */
     static createFrom($$source: any = {}): IndexOptions {
+        const $$createField0_0 = $$createType10;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("roots" in $$parsedSource) {
+            $$parsedSource["roots"] = $$createField0_0($$parsedSource["roots"]);
+        }
         return new IndexOptions($$parsedSource as Partial<IndexOptions>);
     }
 }
@@ -1419,9 +1427,10 @@ export class IndexProgress {
  */
 export class IndexStats {
     /**
-     * 被索引的根目录 / Indexed root directory
+     * Roots 是这次索引覆盖的根目录，顺序与传入时一致
+     * Roots lists the directories this index covers, in the order they were given
      */
-    "root": string;
+    "roots": string[];
 
     /**
      * 是否解析了容器内部名 / Whether inner container names were parsed
@@ -1485,8 +1494,8 @@ export class IndexStats {
 
     /** Creates a new IndexStats instance. */
     constructor($$source: Partial<IndexStats> = {}) {
-        if (!("root" in $$source)) {
-            this["root"] = "";
+        if (!("roots" in $$source)) {
+            this["roots"] = [];
         }
         if (!("deep" in $$source)) {
             this["deep"] = false;
@@ -1532,8 +1541,12 @@ export class IndexStats {
      * Creates a new IndexStats instance from a string or object.
      */
     static createFrom($$source: any = {}): IndexStats {
+        const $$createField0_0 = $$createType10;
         const $$createField12_0 = $$createType10;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("roots" in $$parsedSource) {
+            $$parsedSource["roots"] = $$createField0_0($$parsedSource["roots"]);
+        }
         if ("warnings" in $$parsedSource) {
             $$parsedSource["warnings"] = $$createField12_0($$parsedSource["warnings"]);
         }

@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // indexCacheMagic 与 indexCacheVersion 标识磁盘缓存的格式
@@ -19,7 +18,10 @@ import (
 // The version must be bumped whenever the record layout changes so an old cache is rejected outright
 // instead of decoding into misaligned data
 const (
-	indexCacheMagic   = "ABAIDX"
+	indexCacheMagic = "ABAIDX"
+	// 缓存文件按根目录分开存放，格式没有跟着多目录功能变过，所以版本号保持 1，老缓存继续可用
+	// Cache files are stored per root and the format did not change with multi-root support, so the version
+	// stays at 1 and existing caches keep working
 	indexCacheVersion = 1
 )
 
@@ -81,7 +83,11 @@ func (source *indexedSource) current() bool {
 	return source.container.current() && source.catalog.current()
 }
 
-// indexCache 是一份可写回磁盘的索引快照 / indexCache is an index snapshot that can be written back to disk
+// indexCache 是一个根目录的索引快照，可写回磁盘
+// 一个根目录一份而不是整组目录一份：这样再加一个目录时，已有目录的缓存仍然对得上，不必全量重扫
+// indexCache is the index snapshot of one root directory that can be written back to disk
+// One file per root rather than one per set, so adding another directory leaves the existing caches valid
+// instead of forcing a full rescan
 type indexCache struct {
 	Root     string
 	Deep     bool
@@ -99,7 +105,7 @@ func indexCachePath(root string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("locate the user config directory: %w", err)
 	}
-	sum := sha256.Sum256([]byte(strings.ToLower(filepath.Clean(root))))
+	sum := sha256.Sum256([]byte(pathKey(filepath.Clean(root))))
 	return filepath.Join(base, "ABA_EXPLORER", "search-index", hex.EncodeToString(sum[:8])+".bin"), nil
 }
 
@@ -137,7 +143,7 @@ func writeIndexCache(cache *indexCache) error {
 }
 
 // readIndexCache 读回一个根目录的索引快照，缓存不存在、版本不符或内容损坏时返回错误
-// readIndexCache reads back the index snapshot of a root directory and errors when the cache is absent,
+// readIndexCache reads back the index snapshot of one root directory and errors when the cache is absent,
 // carries another version, or is corrupt
 func readIndexCache(root string) (*indexCache, error) {
 	path, err := indexCachePath(root)
@@ -168,7 +174,7 @@ func readIndexCache(root string) (*indexCache, error) {
 }
 
 // removeIndexCache 删除一个根目录的缓存，缓存本来就不存在时不算错误
-// removeIndexCache deletes the cache of a root directory and treats an already absent cache as success
+// removeIndexCache deletes the cache of one root directory and treats an already absent cache as success
 func removeIndexCache(root string) error {
 	path, err := indexCachePath(root)
 	if err != nil {

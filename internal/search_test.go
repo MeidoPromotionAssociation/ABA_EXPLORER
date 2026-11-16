@@ -61,7 +61,7 @@ func buildSampleIndex(t *testing.T) (*SearchService, IndexStats) {
 	isolatedConfigDir(t)
 	dir := testDataDir(t)
 	service := NewSearchService()
-	stats, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	stats, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("BuildIndex(%q): %v", dir, err)
 	}
@@ -95,7 +95,7 @@ func TestBuildIndexOnSamples(t *testing.T) {
 	}
 
 	status := service.IndexStatus()
-	if status.Names != stats.Names || status.Root != stats.Root {
+	if status.Names != stats.Names || strings.Join(status.Roots, "|") != strings.Join(stats.Roots, "|") {
 		t.Errorf("IndexStatus = %+v, want it to match the build stats %+v", status, stats)
 	}
 }
@@ -388,7 +388,7 @@ func TestIndexCacheRoundTrip(t *testing.T) {
 	dir := testDataDir(t)
 
 	service := NewSearchService()
-	built, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	built, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("BuildIndex: %v", err)
 	}
@@ -397,7 +397,7 @@ func TestIndexCacheRoundTrip(t *testing.T) {
 	// 换一个干净的服务，只能从磁盘缓存恢复
 	// A fresh service can only recover from the on-disk cache
 	restored := NewSearchService()
-	loaded, err := restored.LoadCachedIndex(IndexOptions{Root: dir, Deep: true})
+	loaded, err := restored.LoadCachedIndex(IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("LoadCachedIndex: %v", err)
 	}
@@ -436,11 +436,11 @@ func TestBuildIndexReusesCache(t *testing.T) {
 	dir := testDataDir(t)
 
 	service := NewSearchService()
-	first, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	first, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("first BuildIndex: %v", err)
 	}
-	second, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	second, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("second BuildIndex: %v", err)
 	}
@@ -466,7 +466,7 @@ func TestBuildIndexRescansChangedFile(t *testing.T) {
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct", "nt008_chignon.aba", "nt008_chignon.ct")
 
 	service := NewSearchService()
-	first, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	first, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("first BuildIndex: %v", err)
 	}
@@ -488,7 +488,7 @@ func TestBuildIndexRescansChangedFile(t *testing.T) {
 		t.Fatalf("corrupt the sample: %v", err)
 	}
 
-	second, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	second, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("second BuildIndex: %v", err)
 	}
@@ -538,7 +538,7 @@ func TestBuildIndexPicksUpNewFile(t *testing.T) {
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
-	first, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	first, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("first BuildIndex: %v", err)
 	}
@@ -551,7 +551,7 @@ func TestBuildIndexPicksUpNewFile(t *testing.T) {
 		t.Fatalf("add a sample: %v", err)
 	}
 
-	second, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	second, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("second BuildIndex: %v", err)
 	}
@@ -573,10 +573,10 @@ func TestBuildIndexRefreshIgnoresCache(t *testing.T) {
 	dir := testDataDir(t)
 
 	service := NewSearchService()
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true}); err != nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true}); err != nil {
 		t.Fatalf("first BuildIndex: %v", err)
 	}
-	refreshed, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true, Refresh: true})
+	refreshed, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true, Refresh: true})
 	if err != nil {
 		t.Fatalf("refreshing BuildIndex: %v", err)
 	}
@@ -598,7 +598,7 @@ func TestCacheIsNotSharedAcrossDepth(t *testing.T) {
 	dir := testDataDir(t)
 
 	service := NewSearchService()
-	shallow, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: false})
+	shallow, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: false})
 	if err != nil {
 		t.Fatalf("shallow BuildIndex: %v", err)
 	}
@@ -607,11 +607,11 @@ func TestCacheIsNotSharedAcrossDepth(t *testing.T) {
 	}
 
 	fresh := NewSearchService()
-	if loaded, err := fresh.LoadCachedIndex(IndexOptions{Root: dir, Deep: true}); err != nil || loaded.Ready {
+	if loaded, err := fresh.LoadCachedIndex(IndexOptions{Roots: []string{dir}, Deep: true}); err != nil || loaded.Ready {
 		t.Errorf("a shallow cache was loaded as a deep index: %+v (err %v)", loaded, err)
 	}
 
-	deep, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	deep, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("deep BuildIndex: %v", err)
 	}
@@ -632,12 +632,12 @@ func TestLoadCachedIndexRejectsStaleCache(t *testing.T) {
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true}); err != nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true}); err != nil {
 		t.Fatalf("BuildIndex: %v", err)
 	}
 
 	fresh := NewSearchService()
-	if loaded, err := fresh.LoadCachedIndex(IndexOptions{Root: dir, Deep: true}); err != nil || !loaded.Ready {
+	if loaded, err := fresh.LoadCachedIndex(IndexOptions{Roots: []string{dir}, Deep: true}); err != nil || !loaded.Ready {
 		t.Fatalf("an untouched cache did not load: %+v (err %v)", loaded, err)
 	}
 
@@ -646,7 +646,7 @@ func TestLoadCachedIndexRejectsStaleCache(t *testing.T) {
 	}
 
 	stale := NewSearchService()
-	loaded, err := stale.LoadCachedIndex(IndexOptions{Root: dir, Deep: true})
+	loaded, err := stale.LoadCachedIndex(IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("LoadCachedIndex over a stale cache: %v", err)
 	}
@@ -668,7 +668,7 @@ func TestLoadCachedIndexSurvivesCorruptCache(t *testing.T) {
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true}); err != nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true}); err != nil {
 		t.Fatalf("BuildIndex: %v", err)
 	}
 	cachePath, err := indexCachePath(dir)
@@ -693,7 +693,7 @@ func TestLoadCachedIndexSurvivesCorruptCache(t *testing.T) {
 				t.Fatalf("write the corrupt cache: %v", err)
 			}
 			fresh := NewSearchService()
-			loaded, err := fresh.LoadCachedIndex(IndexOptions{Root: dir, Deep: true})
+			loaded, err := fresh.LoadCachedIndex(IndexOptions{Roots: []string{dir}, Deep: true})
 			if err != nil {
 				t.Fatalf("a corrupt cache returned an error instead of not-ready: %v", err)
 			}
@@ -702,7 +702,7 @@ func TestLoadCachedIndexSurvivesCorruptCache(t *testing.T) {
 			}
 			// 损坏的缓存不能挡住重建
 			// A corrupt cache must not block a rebuild
-			rebuilt, err := fresh.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+			rebuilt, err := fresh.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 			if err != nil {
 				t.Fatalf("BuildIndex over a corrupt cache: %v", err)
 			}
@@ -720,20 +720,20 @@ func TestClearCacheRemovesCacheFile(t *testing.T) {
 	dir := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
 
 	service := NewSearchService()
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true}); err != nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true}); err != nil {
 		t.Fatalf("BuildIndex: %v", err)
 	}
-	if err := service.ClearCache(dir); err != nil {
+	if err := service.ClearCache([]string{dir}); err != nil {
 		t.Fatalf("ClearCache: %v", err)
 	}
 	// 缓存本来就没有时再删一次也不该报错
 	// Clearing an already absent cache must not error either
-	if err := service.ClearCache(dir); err != nil {
+	if err := service.ClearCache([]string{dir}); err != nil {
 		t.Fatalf("ClearCache on an absent cache: %v", err)
 	}
 
 	fresh := NewSearchService()
-	if loaded, err := fresh.LoadCachedIndex(IndexOptions{Root: dir, Deep: true}); err != nil || loaded.Ready {
+	if loaded, err := fresh.LoadCachedIndex(IndexOptions{Roots: []string{dir}, Deep: true}); err != nil || loaded.Ready {
 		t.Errorf("an index loaded after the cache was cleared: %+v (err %v)", loaded, err)
 	}
 }
@@ -811,10 +811,10 @@ func TestBuildIndexRejectsBadRoot(t *testing.T) {
 	isolatedConfigDir(t)
 	service := NewSearchService()
 
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: ""}); err == nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{}); err == nil {
 		t.Error("empty root was accepted")
 	}
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: filepath.Join(t.TempDir(), "missing")}); err == nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{filepath.Join(t.TempDir(), "missing")}}); err == nil {
 		t.Error("missing root was accepted")
 	}
 
@@ -822,7 +822,7 @@ func TestBuildIndexRejectsBadRoot(t *testing.T) {
 	if err := os.WriteFile(file, []byte("x"), 0644); err != nil {
 		t.Fatalf("write temp file: %v", err)
 	}
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: file}); err == nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{file}}); err == nil {
 		t.Error("a regular file was accepted as the index root")
 	}
 }
@@ -832,12 +832,173 @@ func TestBuildIndexRejectsBadRoot(t *testing.T) {
 func TestBuildIndexOnEmptyDirectory(t *testing.T) {
 	isolatedConfigDir(t)
 	service := NewSearchService()
-	stats, err := service.BuildIndex(context.Background(), IndexOptions{Root: t.TempDir()})
+	stats, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{t.TempDir()}})
 	if err != nil {
 		t.Fatalf("BuildIndex on an empty directory: %v", err)
 	}
 	if !stats.Ready || stats.Names != 0 {
 		t.Errorf("stats = %+v, want a ready empty index", stats)
+	}
+}
+
+// TestNormalizeRoots 检查根目录列表的清洗：去空白、去重、丢掉被其他目录包含的项，并保留传入顺序
+// TestNormalizeRoots covers cleaning a root list: trimming, deduplicating, dropping nested directories,
+// and keeping the given order
+func TestNormalizeRoots(t *testing.T) {
+	base := t.TempDir()
+	nested := filepath.Join(base, "mods", "parts")
+	if err := os.MkdirAll(nested, 0755); err != nil {
+		t.Fatalf("create a nested directory: %v", err)
+	}
+	other := t.TempDir()
+
+	got := normalizeRoots([]string{" " + base + " ", nested, other, base, "", "   "})
+	want := []string{base, other}
+	if len(got) != len(want) {
+		t.Fatalf("normalizeRoots = %v, want %v", got, want)
+	}
+	for i := range want {
+		if !samePath(got[i], want[i]) {
+			t.Errorf("normalizeRoots[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+
+	if roots := normalizeRoots(nil); len(roots) != 0 {
+		t.Errorf("normalizeRoots(nil) = %v, want nothing", roots)
+	}
+}
+
+// TestBuildIndexAcrossMultipleRoots 检查一次构建能覆盖多个目录，两边的名字都查得到
+// 游戏本体与 MOD 分放两个目录是常态，用户不该为此建两份索引
+// TestBuildIndexAcrossMultipleRoots checks that one build covers several directories and names from both
+// are searchable
+// Keeping the game and its MODs in separate directories is the normal case, and the user should not have to
+// build two indexes for it
+func TestBuildIndexAcrossMultipleRoots(t *testing.T) {
+	isolatedConfigDir(t)
+	first := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
+	second := sampleCopy(t, "nt008_chignon.aba", "nt008_chignon.ct")
+
+	service := NewSearchService()
+	stats, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{first, second}, Deep: true})
+	if err != nil {
+		t.Fatalf("BuildIndex over two roots: %v", err)
+	}
+	if len(stats.Roots) != 2 {
+		t.Fatalf("stats report %d roots, want both of them", len(stats.Roots))
+	}
+	if stats.Containers < 2 {
+		t.Errorf("indexed %d containers, want at least one from each root", stats.Containers)
+	}
+	// 两个目录各自贡献一个容器，缺一个就说明只扫了第一个根目录
+	// Each root contributes one container, and a missing one means only the first root was scanned
+	for _, name := range []string{"cm3d2_eyes", "nt008_chignon"} {
+		if result := service.Search(SearchQuery{Text: name, Limit: 10}); result.Total == 0 {
+			t.Errorf("names from the root holding %s are missing from the index", name)
+		}
+	}
+}
+
+// TestBuildIndexFoldsNestedRoot 检查父目录已经在索引里时，它下面的子目录不会被重复扫描
+// TestBuildIndexFoldsNestedRoot checks that a directory already covered by its parent is not scanned twice
+func TestBuildIndexFoldsNestedRoot(t *testing.T) {
+	isolatedConfigDir(t)
+	source := testDataDir(t)
+	parent := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
+	nested := filepath.Join(parent, "mods")
+	if err := os.MkdirAll(nested, 0755); err != nil {
+		t.Fatalf("create the nested directory: %v", err)
+	}
+	for _, name := range []string{"nt008_chignon.aba", "nt008_chignon.ct"} {
+		data, err := os.ReadFile(filepath.Join(source, name))
+		if err != nil {
+			t.Skipf("the sample %q is unavailable", name)
+		}
+		if err := os.WriteFile(filepath.Join(nested, name), data, 0644); err != nil {
+			t.Fatalf("copy %q into the nested directory: %v", name, err)
+		}
+	}
+
+	service := NewSearchService()
+	both, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{parent, nested}, Deep: true})
+	if err != nil {
+		t.Fatalf("BuildIndex over a parent and its child: %v", err)
+	}
+	if len(both.Roots) != 1 {
+		t.Errorf("stats report %d roots, want the child folded into its parent", len(both.Roots))
+	}
+	if both.Names == 0 {
+		t.Fatal("the build produced an empty index")
+	}
+	// 同一个容器扫两遍会让它的名字在索引里出现两次，名字总数因此翻倍
+	// Scanning one container twice lists its names twice, which doubles the index size
+	single := NewSearchService()
+	only, err := single.BuildIndex(context.Background(), IndexOptions{Roots: []string{parent}, Deep: true})
+	if err != nil {
+		t.Fatalf("BuildIndex over the parent alone: %v", err)
+	}
+	if both.Names != only.Names {
+		t.Errorf("indexing the parent and its child produced %d names, want the parent's %d", both.Names, only.Names)
+	}
+}
+
+// TestCacheIsKeptPerRoot 检查磁盘缓存按根目录分开存放
+// 一是装载时与目录的排列顺序无关，二是再加一个目录不会把已有目录的缓存作废，只扫新目录
+// TestCacheIsKeptPerRoot checks that the on-disk cache is kept per root directory
+// Loading must not care about the order of the directories, and adding one more must not throw away the caches
+// of the ones already indexed: only the new directory should be scanned
+func TestCacheIsKeptPerRoot(t *testing.T) {
+	isolatedConfigDir(t)
+	first := sampleCopy(t, "cm3d2_eyes.aba", "cm3d2_eyes.ct")
+	second := sampleCopy(t, "nt008_chignon.aba", "nt008_chignon.ct")
+
+	service := NewSearchService()
+	built, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{first, second}, Deep: true})
+	if err != nil {
+		t.Fatalf("BuildIndex: %v", err)
+	}
+
+	// 换一个顺序添加同一批目录，缓存仍然该认
+	// The same directories in another order must still hit the caches
+	reordered := NewSearchService()
+	loaded, err := reordered.LoadCachedIndex(IndexOptions{Roots: []string{second, first}, Deep: true})
+	if err != nil {
+		t.Fatalf("LoadCachedIndex with reordered roots: %v", err)
+	}
+	if !loaded.Ready || !loaded.FromCache {
+		t.Fatalf("a reordered root set did not restore from the cache: %+v", loaded)
+	}
+	if loaded.Names != built.Names {
+		t.Errorf("restored %d names, want the built %d", loaded.Names, built.Names)
+	}
+
+	// 只装载其中一个目录：它自己那份缓存是完整的，因此可用，但只含它自己的名字
+	// Loading one root alone works because its own cache is complete, and it holds only that root's names
+	single := NewSearchService()
+	only, err := single.LoadCachedIndex(IndexOptions{Roots: []string{first}, Deep: true})
+	if err != nil {
+		t.Fatalf("LoadCachedIndex with one root: %v", err)
+	}
+	if !only.Ready {
+		t.Fatal("one root of a two-root index did not restore from its own cache")
+	}
+	if only.Names == 0 || only.Names >= built.Names {
+		t.Errorf("one root restored %d names, want a non-empty subset of the built %d", only.Names, built.Names)
+	}
+
+	// 再加一个从没索引过的目录：老目录继续沿用缓存，只扫这一个新目录
+	// Adding a directory never indexed before must reuse the old caches and scan only the new one
+	third := sampleCopy(t, "csv.aba", "csv.ct")
+	extended := NewSearchService()
+	grown, err := extended.BuildIndex(context.Background(), IndexOptions{Roots: []string{first, second, third}, Deep: true})
+	if err != nil {
+		t.Fatalf("BuildIndex after adding a root: %v", err)
+	}
+	if grown.Reused == 0 {
+		t.Error("adding a directory threw away the caches of the directories already indexed")
+	}
+	if grown.Names <= built.Names {
+		t.Errorf("index holds %d names after adding a root, want more than %d", grown.Names, built.Names)
 	}
 }
 
@@ -858,7 +1019,7 @@ func TestCancelIndexKeepsPreviousIndex(t *testing.T) {
 	// 强制刷新，否则第一次构建写下的缓存会让这次无事可做，也就无从取消
 	// A forced refresh is required, otherwise the cache written by the first build leaves nothing to do and
 	// therefore nothing to cancel
-	cancelled, err := service.BuildIndex(context.Background(), IndexOptions{Root: stats.Root, Deep: true, Refresh: true})
+	cancelled, err := service.BuildIndex(context.Background(), IndexOptions{Roots: stats.Roots, Deep: true, Refresh: true})
 	if err != nil {
 		t.Fatalf("cancelled BuildIndex returned an error: %v", err)
 	}
@@ -883,7 +1044,7 @@ func TestCancelIndexBeforeBuildDoesNotLeak(t *testing.T) {
 	service := NewSearchService()
 	service.CancelIndex()
 
-	stats, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true})
+	stats, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true})
 	if err != nil {
 		t.Fatalf("BuildIndex after an idle cancel: %v", err)
 	}
@@ -935,7 +1096,7 @@ func TestBuildIndexEmitsProgress(t *testing.T) {
 		mu.Unlock()
 	})
 
-	if _, err := service.BuildIndex(context.Background(), IndexOptions{Root: dir, Deep: true}); err != nil {
+	if _, err := service.BuildIndex(context.Background(), IndexOptions{Roots: []string{dir}, Deep: true}); err != nil {
 		t.Fatalf("BuildIndex: %v", err)
 	}
 

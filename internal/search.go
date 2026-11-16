@@ -84,7 +84,12 @@ const defaultSearchLimit = 500
 
 // IndexOptions 是一次索引构建的输入 / IndexOptions is the input of one index build
 type IndexOptions struct {
-	Root string `json:"root"` // 要扫描的根目录 / Root directory to scan
+	// Roots 是要扫描的根目录，可以给多个，索引会把它们并成一份
+	// 互相包含的目录只保留外层那个：内层已经被外层覆盖，重复扫描只是白花时间
+	// Roots lists the directories to scan, more than one is allowed and they are merged into a single index
+	// A directory nested inside another is dropped because the outer one already covers it, and scanning it
+	// again would only waste time
+	Roots []string `json:"roots"`
 	// Deep 打开后会解析 .menuassets/.materialassets/.pmatassets，取出 .menu/.mate/.pmat 这些
 	// 只存在于容器内部、catalog 不会列出的名字
 	// Deep parses .menuassets, .materialassets, and .pmatassets to recover the .menu, .mate, and .pmat names
@@ -109,7 +114,9 @@ type IndexProgress struct {
 
 // IndexStats 是一次索引构建的结果概况 / IndexStats summarizes the outcome of one index build
 type IndexStats struct {
-	Root       string   `json:"root"`       // 被索引的根目录 / Indexed root directory
+	// Roots 是这次索引覆盖的根目录，顺序与传入时一致
+	// Roots lists the directories this index covers, in the order they were given
+	Roots      []string `json:"roots"`
 	Deep       bool     `json:"deep"`       // 是否解析了容器内部名 / Whether inner container names were parsed
 	Ready      bool     `json:"ready"`      // 索引是否可用 / Whether an index is available
 	Building   bool     `json:"building"`   // 是否正在构建 / Whether a build is running
@@ -247,10 +254,10 @@ func (index *nameIndex) ownerOf(record *indexRecord) string {
 	return index.owners[record.owner]
 }
 
-// SearchService 在一个目录树上建立资源名索引，用于回答"这个名字在哪个 aba 里"
+// SearchService 在一个或多个目录树上建立资源名索引，用于回答"这个名字在哪个 aba 里"
 // 游戏按名字加载资源，而名字分布在两层：.ct 的 catalog 列出容器里的资源，
 // .menu/.mate/.pmat 这类名字只存在于容器内部的 .menuassets/.materialassets/.pmatassets 里，catalog 不会列
-// SearchService indexes resource names across a directory tree to answer "which .aba holds this name"
+// SearchService indexes resource names across one or more directory trees to answer "which .aba holds this name"
 // The game loads resources by name, and names live on two layers: a .ct catalog lists the resources of a container,
 // while names such as .menu, .mate, and .pmat exist only inside the .menuassets, .materialassets, and .pmatassets
 // entries within a container and never appear in a catalog
@@ -342,6 +349,104 @@ func scanRoot(ctx context.Context, root string) (scanTargets, error) {
 	return targets, nil
 }
 
+// scanRoots 依次扫描每个根目录并合并成一份目标清单
+// 根目录之间已经去过嵌套，但重叠仍可能以符号链接等形式出现，所以按路径再去重一次：
+// 同一个文件扫两遍会让它的名字在索引里出现两次
+// scanRoots walks every root in turn and merges the results into one target list
+// Nested roots are already dropped, but overlap can still show up through symlinks, so paths are deduplicated
+// again: scanning one file twice would list its names twice in the index
+func scanRoots(ctx context.Context, roots []string) (scanTargets, error) {
+	var merged scanTargets
+	seen := make(map[string]bool)
+	keep := func(paths []string) []string {
+		kept := make([]string, 0, len(paths))
+		for _, path := range paths {
+			if seen[path] {
+				continue
+			}
+			seen[path] = true
+			kept = append(kept, path)
+		}
+		return kept
+	}
+	for _, root := range roots {
+		targets, err := scanRoot(ctx, root)
+		if err != nil {
+			return scanTargets{}, err
+		}
+		merged.catalogs = append(merged.catalogs, keep(targets.catalogs)...)
+		merged.containers = append(merged.containers, keep(targets.containers)...)
+	}
+	return merged, nil
+}
+
+// normalizeRoots 清洗根目录列表：去空白、去重，并丢掉被另一个根目录包含的项
+// 传入顺序保留下来，前端要按用户添加的顺序显示它们
+// normalizeRoots cleans a root list by trimming, deduplicating, and dropping every directory nested inside
+// another one
+// The given order is preserved because the frontend shows the roots in the order the user added them
+func normalizeRoots(values []string) []string {
+	cleaned := make([]string, 0, len(values))
+	seen := make(map[string]bool, len(values))
+	for _, value := range values {
+		root := strings.TrimSpace(value)
+		if root == "" {
+			continue
+		}
+		root = filepath.Clean(root)
+		key := pathKey(root)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		cleaned = append(cleaned, root)
+	}
+	// 原地过滤：只写入已经读过的位置，因此不会覆盖还没检查的项
+	// Filter in place, writing only at positions already read so nothing unchecked gets overwritten
+	kept := cleaned[:0]
+	for i, root := range cleaned {
+		nested := false
+		for j, other := range cleaned {
+			if i != j && pathWithin(other, root) {
+				nested = true
+				break
+			}
+		}
+		if !nested {
+			kept = append(kept, root)
+		}
+	}
+	return kept
+}
+
+// pathKey 是路径比较用的键：Windows 上大小写不敏感，其他平台保持原样
+// pathKey is the key used to compare paths: case-insensitive on Windows and verbatim elsewhere
+func pathKey(path string) string {
+	if runtime.GOOS == "windows" {
+		return strings.ToLower(path)
+	}
+	return path
+}
+
+// samePath 判断两个路径是否指向同一个位置，Windows 上大小写不敏感
+// samePath reports whether two paths point at the same place, case-insensitively on Windows
+func samePath(left string, right string) bool {
+	return pathKey(left) == pathKey(right)
+}
+
+// pathWithin 判断 child 是否位于 parent 之下（不含两者相同的情况）
+// pathWithin reports whether child sits under parent, excluding the case where both are the same directory
+func pathWithin(parent string, child string) bool {
+	relative, err := filepath.Rel(pathKey(parent), pathKey(child))
+	if err != nil {
+		return false
+	}
+	if relative == "." || relative == ".." {
+		return false
+	}
+	return !strings.HasPrefix(relative, ".."+string(filepath.Separator))
+}
+
 // catalogScan 是一个 .ct 的解析结果 / catalogScan is the parse result of one .ct
 type catalogScan struct {
 	catalogPath string
@@ -378,21 +483,24 @@ type scannedName struct {
 	containerName string
 }
 
-// BuildIndex 在 root 下建立名字索引，期间按文件推送进度事件，可用 CancelIndex 中断
+// BuildIndex 在 roots 覆盖的目录下建立名字索引，期间按文件推送进度事件，可用 CancelIndex 中断
 // 索引常驻内存直到进程退出或再次构建，因此重复查询是毫秒级的
-// BuildIndex builds a name index under root, pushes a progress event per file, and can be interrupted with CancelIndex
+// BuildIndex builds a name index over the directories listed in roots, pushes a progress event per file, and can
+// be interrupted with CancelIndex
 // The index stays in memory until the process exits or another build starts, so repeated queries take milliseconds
 func (s *SearchService) BuildIndex(ctx context.Context, options IndexOptions) (IndexStats, error) {
-	root := strings.TrimSpace(options.Root)
-	if root == "" {
+	roots := normalizeRoots(options.Roots)
+	if len(roots) == 0 {
 		return IndexStats{}, errors.New("no directory was given to index")
 	}
-	info, err := os.Stat(root)
-	if err != nil {
-		return IndexStats{}, fmt.Errorf("read %q: %w", root, err)
-	}
-	if !info.IsDir() {
-		return IndexStats{}, fmt.Errorf("%q is not a directory", root)
+	for _, root := range roots {
+		info, err := os.Stat(root)
+		if err != nil {
+			return IndexStats{}, fmt.Errorf("read %q: %w", root, err)
+		}
+		if !info.IsDir() {
+			return IndexStats{}, fmt.Errorf("%q is not a directory", root)
+		}
 	}
 	if !s.building.CompareAndSwap(false, true) {
 		return s.IndexStatus(), errors.New("an index build is already running")
@@ -413,139 +521,194 @@ func (s *SearchService) BuildIndex(ctx context.Context, options IndexOptions) (I
 	}()
 
 	start := time.Now()
-	targets, err := scanRoot(ctx, root)
+	targets, err := scanRoots(ctx, roots)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return s.cancelledStats(root, options.Deep, start), nil
+			return s.cancelledStats(roots, options.Deep, start), nil
 		}
-		return IndexStats{}, fmt.Errorf("scan %q: %w", root, err)
+		return IndexStats{}, fmt.Errorf("scan %s: %w", strings.Join(roots, ", "), err)
 	}
 
 	// 复用磁盘缓存里仍然对得上的来源，只把变动过和新增的文件交给 worker
 	// 22 GB 的资源全量重建要二十秒上下，而加装一个 MOD 通常只动几个文件
 	// Reuse every cached source still matching disk and hand only changed or new files to the workers
 	// A full rebuild over 22 GB runs about twenty seconds, while installing one MOD usually touches a few files
-	reused, skip := s.reusableSources(root, options)
+	reused, skip := s.reusableSources(roots, options)
 	targets = targets.without(skip)
 
 	total := len(targets.catalogs) + len(targets.containers)
 	if total == 0 && len(reused) == 0 {
-		index := buildIndex(root, options.Deep, nil, nil)
+		index := buildIndex(roots, options.Deep, nil, nil)
 		index.stats.ElapsedMs = time.Since(start).Milliseconds()
 		s.store(index)
-		s.saveCache(index.stats, nil, nil)
+		s.saveCache(roots, options.Deep, nil, nil)
 		s.emitProgress(IndexProgress{Total: 0, Finished: true})
 		return index.stats, nil
 	}
 
 	catalogResults, containerResults, cancelledDuringWork := s.runScans(ctx, targets, options.Deep, total)
 	if cancelledDuringWork {
-		return s.cancelledStats(root, options.Deep, start), nil
+		return s.cancelledStats(roots, options.Deep, start), nil
 	}
 
 	scanned, warnings := mergeScans(catalogResults, containerResults)
 	sources := combineSources(reused, scanned)
-	index := buildIndex(root, options.Deep, sources, warnings)
+	index := buildIndex(roots, options.Deep, sources, warningTexts(warnings))
 	index.stats.ElapsedMs = time.Since(start).Milliseconds()
 	index.stats.Reused = len(reused)
 	s.store(index)
-	s.saveCache(index.stats, sources, warnings)
+	s.saveCache(roots, options.Deep, sources, warnings)
 	s.emitProgress(IndexProgress{Done: total, Total: total, Names: index.stats.Names, Finished: true})
 	return index.stats, nil
 }
 
 // reusableSources 从磁盘缓存里挑出仍然对得上的来源，并给出这些来源已经覆盖的文件路径
-// 缓存对应的根目录或深度不同就整份作废：浅索引缺少容器内部名，拿它冒充深索引会让 .menu 查不到还查不出原因
-// reusableSources picks the still-matching sources out of the on-disk cache and reports which file paths
+// 缓存按根目录分开存放，所以加一个目录时只需要扫这一个目录：整份作废会让"再加一个 MOD 目录"变成全量重扫。
+// 深度不同仍然整份作废：浅索引缺少容器内部名，拿它冒充深索引会让 .menu 查不到还查不出原因
+// reusableSources picks the still-matching sources out of the on-disk caches and reports which file paths
 // they already cover
-// A cache for another root or another depth is discarded whole: a shallow index lacks inner container names,
-// and passing it off as a deep one would make .menu lookups silently come up empty
-func (s *SearchService) reusableSources(root string, options IndexOptions) ([]indexedSource, map[string]bool) {
+// The cache is stored per root, so adding one directory only scans that one: invalidating everything would turn
+// "add one more MOD directory" into a full rescan
+// A different depth still invalidates a cache whole: a shallow index lacks inner container names, and passing it
+// off as a deep one would make .menu lookups silently come up empty
+func (s *SearchService) reusableSources(roots []string, options IndexOptions) ([]indexedSource, map[string]bool) {
 	if options.Refresh {
 		return nil, nil
 	}
-	cache, err := readIndexCache(root)
-	if err != nil || cache == nil {
-		return nil, nil
-	}
-	if !strings.EqualFold(filepath.Clean(cache.Root), filepath.Clean(root)) || cache.Deep != options.Deep {
-		return nil, nil
-	}
-	reused := make([]indexedSource, 0, len(cache.Sources))
-	skip := make(map[string]bool, len(cache.Sources)*2)
-	for i := range cache.Sources {
-		source := &cache.Sources[i]
-		if !source.current() {
+	var reused []indexedSource
+	skip := make(map[string]bool)
+	for _, root := range roots {
+		cache, err := readIndexCache(root)
+		if err != nil || cache == nil {
 			continue
 		}
-		reused = append(reused, *source)
-		if source.container.Path != "" {
-			skip[strings.ToLower(source.container.Path)] = true
+		if !samePath(cache.Root, root) || cache.Deep != options.Deep {
+			continue
 		}
-		if source.catalog.Path != "" {
-			skip[strings.ToLower(source.catalog.Path)] = true
+		for i := range cache.Sources {
+			source := &cache.Sources[i]
+			if !source.current() {
+				continue
+			}
+			reused = append(reused, *source)
+			if source.container.Path != "" {
+				skip[strings.ToLower(source.container.Path)] = true
+			}
+			if source.catalog.Path != "" {
+				skip[strings.ToLower(source.catalog.Path)] = true
+			}
 		}
 	}
 	return reused, skip
 }
 
-// saveCache 把这次构建的结果写回磁盘，失败只记进警告
+// saveCache 把这次构建的结果按根目录拆开写回磁盘，失败只记进警告
 // 缓存写不下去不该让一份已经建好、完全可用的索引显示为失败
-// saveCache writes the result of this build back to disk and records a failure as a warning only
+// saveCache splits the result of this build by root directory and writes one cache file each, recording a
+// failure as a warning only
 // A cache that cannot be written must not make an already built, fully usable index report as failed
-func (s *SearchService) saveCache(stats IndexStats, sources []indexedSource, warnings []string) {
-	if err := writeIndexCache(&indexCache{
-		Root:     stats.Root,
-		Deep:     stats.Deep,
-		Sources:  sources,
-		Warnings: warnings,
-	}); err != nil {
-		s.mu.Lock()
-		if s.index != nil {
-			s.index.stats.Warnings = append(s.index.stats.Warnings, "index cache: "+err.Error())
+func (s *SearchService) saveCache(roots []string, deep bool, sources []indexedSource, warnings []scanWarning) {
+	caches := make([]indexCache, len(roots))
+	for i, root := range roots {
+		caches[i] = indexCache{Root: root, Deep: deep}
+	}
+	// rootOf 找出一个文件属于哪个根目录，找不到返回 -1
+	// 根目录之间去过嵌套，所以一个文件最多属于一个；符号链接造成的重叠由 combineSources 在索引层去重
+	// rootOf finds which root a file belongs to and returns -1 when none matches
+	// Roots are free of nesting, so a file belongs to at most one of them; overlap through symlinks is
+	// deduplicated in the index by combineSources
+	rootOf := func(path string) int {
+		if path == "" {
+			return -1
 		}
-		s.mu.Unlock()
+		for i, root := range roots {
+			if samePath(root, path) || pathWithin(root, path) {
+				return i
+			}
+		}
+		return -1
+	}
+	for _, source := range sources {
+		owner := rootOf(source.container.Path)
+		if owner < 0 {
+			owner = rootOf(source.catalog.Path)
+		}
+		if owner < 0 {
+			// 归属不到任何根目录的来源不写缓存，下次重建时重扫它
+			// A source belonging to no root is not cached and gets rescanned by the next build
+			continue
+		}
+		caches[owner].Sources = append(caches[owner].Sources, source)
+	}
+	for _, warning := range warnings {
+		if owner := rootOf(warning.path); owner >= 0 {
+			caches[owner].Warnings = append(caches[owner].Warnings, warning.text)
+		}
+	}
+	for i := range caches {
+		if err := writeIndexCache(&caches[i]); err != nil {
+			s.mu.Lock()
+			if s.index != nil {
+				s.index.stats.Warnings = append(s.index.stats.Warnings, "index cache: "+err.Error())
+			}
+			s.mu.Unlock()
+		}
 	}
 }
 
-// LoadCachedIndex 直接装载一个根目录的磁盘缓存，只在缓存完整且每个文件都没变过时成功
+// LoadCachedIndex 直接装载一组根目录的磁盘缓存，只在每个根目录都有缓存且其中每个文件都没变过时成功
 // 有任何一处对不上就返回未就绪，让用户去走构建：这里悄悄用半份缓存会让搜索结果少东西却看不出来
-// LoadCachedIndex loads the on-disk cache of a root directory and succeeds only when the cache is complete
-// and every file is unchanged
+// LoadCachedIndex loads the on-disk caches of a set of root directories and succeeds only when every root has
+// one and every file is unchanged
 // Any mismatch returns a not-ready status so the user runs a build instead, because silently serving half a
 // cache would drop results without any visible sign
 func (s *SearchService) LoadCachedIndex(options IndexOptions) (IndexStats, error) {
-	root := strings.TrimSpace(options.Root)
-	if root == "" {
+	roots := normalizeRoots(options.Roots)
+	if len(roots) == 0 {
 		return IndexStats{}, nil
 	}
-	cache, err := readIndexCache(root)
-	if err != nil || cache == nil {
-		return IndexStats{}, nil
-	}
-	if !strings.EqualFold(filepath.Clean(cache.Root), filepath.Clean(root)) || cache.Deep != options.Deep {
-		return IndexStats{}, nil
-	}
-	for i := range cache.Sources {
-		if !cache.Sources[i].current() {
+	var sources []indexedSource
+	var warnings []string
+	seenWarnings := make(map[string]bool)
+	for _, root := range roots {
+		cache, err := readIndexCache(root)
+		if err != nil || cache == nil {
 			return IndexStats{}, nil
+		}
+		if !samePath(cache.Root, root) || cache.Deep != options.Deep {
+			return IndexStats{}, nil
+		}
+		for i := range cache.Sources {
+			if !cache.Sources[i].current() {
+				return IndexStats{}, nil
+			}
+		}
+		sources = append(sources, cache.Sources...)
+		for _, warning := range cache.Warnings {
+			if seenWarnings[warning] {
+				continue
+			}
+			seenWarnings[warning] = true
+			warnings = append(warnings, warning)
 		}
 	}
 	start := time.Now()
-	index := buildIndex(root, cache.Deep, cache.Sources, cache.Warnings)
+	index := buildIndex(roots, options.Deep, sources, warnings)
 	index.stats.ElapsedMs = time.Since(start).Milliseconds()
-	index.stats.Reused = len(cache.Sources)
+	index.stats.Reused = len(sources)
 	index.stats.FromCache = true
 	s.store(index)
 	return index.stats, nil
 }
 
-// ClearCache 删除一个根目录的磁盘缓存 / ClearCache deletes the on-disk cache of a root directory
-func (s *SearchService) ClearCache(root string) error {
-	if strings.TrimSpace(root) == "" {
-		return nil
+// ClearCache 删除一组根目录的磁盘缓存 / ClearCache deletes the on-disk caches of a set of root directories
+func (s *SearchService) ClearCache(roots []string) error {
+	for _, root := range normalizeRoots(roots) {
+		if err := removeIndexCache(root); err != nil {
+			return err
+		}
 	}
-	return removeIndexCache(root)
+	return nil
 }
 
 // scanWorkerFloor 与 scanWorkerCeiling 是默认 worker 数的下限与上限
@@ -683,9 +846,9 @@ dispatch:
 
 // cancelledStats 组装一次被取消的构建的状态，索引保持上一次的内容不变
 // cancelledStats builds the status of a cancelled run and leaves the previous index untouched
-func (s *SearchService) cancelledStats(root string, deep bool, start time.Time) IndexStats {
+func (s *SearchService) cancelledStats(roots []string, deep bool, start time.Time) IndexStats {
 	stats := s.IndexStatus()
-	stats.Root = root
+	stats.Roots = roots
 	stats.Deep = deep
 	stats.Cancelled = true
 	stats.Building = false
@@ -924,6 +1087,25 @@ func resourceNameFromLoadName(loadName string) string {
 	return stripped
 }
 
+// scanWarning 是一条跳过文件的说明，连同它出自哪个文件
+// 带上路径是为了把警告归到对应的根目录：缓存按根目录分文件存放，警告也跟着各归各家
+// scanWarning is one skipped-file note together with the file it came from
+// The path lets a warning be filed under its own root directory, since the cache is stored per root
+type scanWarning struct {
+	path string
+	text string
+}
+
+// warningTexts 取出警告的文字形式，供前端显示
+// warningTexts extracts the display form of the warnings for the frontend
+func warningTexts(warnings []scanWarning) []string {
+	texts := make([]string, 0, len(warnings))
+	for _, warning := range warnings {
+		texts = append(texts, warning.text)
+	}
+	return texts
+}
+
 // mergeScans 把并行解析的结果按来源归组并去重
 // catalog 与 m_Container 描述的是同一批资源，同一个来源里同名同宿主的条目只保留信息最全的一条
 // 归组的单位是"一个容器加它配套的 .ct"，这同时也是缓存失效的单位：这两个文件任一变了就只重扫这一组
@@ -932,9 +1114,9 @@ func resourceNameFromLoadName(loadName string) string {
 // given name and owner
 // The grouping unit is one container plus its paired .ct, which doubles as the cache invalidation unit:
 // when either file changes only that one group is rescanned
-func mergeScans(catalogs []catalogScan, containers []containerScan) ([]indexedSource, []string) {
+func mergeScans(catalogs []catalogScan, containers []containerScan) ([]indexedSource, []scanWarning) {
 	var sources []indexedSource
-	var warnings []string
+	var warnings []scanWarning
 
 	// 容器绝对路径 -> sources 下标，catalog 只写得出资源文件名，靠同目录解析成绝对路径
 	// Absolute container path to sources index; a catalog only names the resource file, which is resolved
@@ -1004,7 +1186,7 @@ func mergeScans(catalogs []catalogScan, containers []containerScan) ([]indexedSo
 	// Containers go first because a container path is the most reliable owner key in the index, and catalogs attach by file name afterwards
 	for _, scan := range containers {
 		if scan.warning != "" {
-			warnings = append(warnings, scan.warning)
+			warnings = append(warnings, scanWarning{path: scan.containerPath, text: scan.warning})
 		}
 		if len(scan.entries) == 0 {
 			continue
@@ -1017,7 +1199,7 @@ func mergeScans(catalogs []catalogScan, containers []containerScan) ([]indexedSo
 
 	for _, scan := range catalogs {
 		if scan.warning != "" {
-			warnings = append(warnings, scan.warning)
+			warnings = append(warnings, scanWarning{path: scan.catalogPath, text: scan.warning})
 		}
 		if len(scan.entries) == 0 && len(scan.containerNames) == 0 {
 			continue
@@ -1099,10 +1281,10 @@ func combineSources(reused []indexedSource, scanned []indexedSource) []indexedSo
 
 // buildIndex 把按来源归好的条目摊平成可查询的索引
 // buildIndex flattens source-grouped entries into a queryable index
-func buildIndex(root string, deep bool, sources []indexedSource, warnings []string) *nameIndex {
+func buildIndex(roots []string, deep bool, sources []indexedSource, warnings []string) *nameIndex {
 	index := &nameIndex{
 		sources: make([]indexSource, 0, len(sources)),
-		stats:   IndexStats{Root: root, Deep: deep, Ready: true, Warnings: warnings},
+		stats:   IndexStats{Roots: roots, Deep: deep, Ready: true, Warnings: warnings},
 	}
 
 	// 记录切片一次分配到位：按需增长会翻倍扩容，百万级记录上要反复搬运整个数组

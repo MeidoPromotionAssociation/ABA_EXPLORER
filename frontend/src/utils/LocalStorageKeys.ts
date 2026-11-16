@@ -29,9 +29,13 @@ export const CtOverviewOpenKey = "CtOverviewOpen"; // 内容表页概览是否�
 export const AutoGenerateCtKey = "AutoGenerateCt"; // 打包后是否自动生成配套 .ct
 
 // 全局搜索
-export const SearchRootKey = "SearchIndexRoot"; // 上次索引的根目录
+export const SearchRootsKey = "SearchIndexRoots"; // 上次索引的根目录列表（JSON 数组）
+
+export const LegacySearchRootKey = "SearchIndexRoot"; // 旧版只存单个根目录，读取时迁移到 SearchRootsKey
 
 export const SearchDeepKey = "SearchIndexDeep"; // 是否解析容器内部名（.menu/.mate/.pmat）
+
+export const SearchAutoUpdateKey = "SearchIndexAutoUpdate"; // 进入搜索页时是否自动增量更新索引
 
 // 表格
 export const ColumnWidthsPrefix = "ColumnWidths:"; // 用户拖动调整过的列宽，后接表标识

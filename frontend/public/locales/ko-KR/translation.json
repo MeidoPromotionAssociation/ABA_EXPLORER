@@ -1,5 +1,6 @@
 {
   "Common": {
+    "ok": "확인",
     "open_shortcut": "{{action}} (Ctrl+O)",
     "reveal": "파일 관리자에서 보기",
     "reload": "다시 불러오기",
@@ -219,10 +220,15 @@
     "save_filter": "모든 파일"
   },
   "SearchPage": {
-    "choose_root": "색인할 폴더 선택",
-    "no_root": "먼저 색인할 폴더를 선택하세요",
-    "no_root_yet": "폴더를 선택하지 않음",
+    "manage_roots": "색인 폴더 관리",
+    "choose_root": "폴더 추가",
+    "roots_hint": "변경 사항은 '색인 갱신' 또는 다음 자동 업데이트 때 반영됩니다",
+    "no_root": "먼저 색인할 폴더를 추가하세요",
+    "no_root_yet": "아직 추가된 폴더가 없습니다. 다른 드라이브에 있어도 하나씩 추가할 수 있습니다",
+    "remove_root": "색인 대상에서 제거",
     "deep": "심층 색인",
+    "auto_update": "자동 업데이트",
+    "auto_update_tip": "켜면 이 페이지를 열 때마다 색인을 증분 갱신합니다. 변경되거나 추가된 파일만 다시 해석하므로 보통 1~2초면 끝납니다",
     "deep_tip": "menuassets / materialassets / pmatassets를 해석해 컨테이너 내부에만 존재하고 catalog에는 실리지 않는 .menu, .mate, .pmat 이름을 찾아냅니다",
     "build": "색인 만들기",
     "update": "색인 갱신",
@@ -244,8 +250,7 @@
     "no_extension": "확장자 없음",
     "count": "총 {{total}}건",
     "count_truncated": "{{shown}} / 총 {{total}}건 표시",
-    "intro": "게임 리소스 폴더를 선택해 색인을 만들면 이름으로 어느 aba에 있는지 찾을 수 있습니다.",
-    "intro_hint": "색인은 각 컨테이너의 메타데이터만 읽으므로 22GB 리소스라도 실제로 읽는 양은 200MB 미만입니다. 결과는 디스크에 저장되어 다음 실행 때 그대로 복원되며 변경된 파일만 다시 해석합니다.",
+    "intro": "게임 리소스 폴더를 추가해 색인을 만들면 이름으로 어느 aba에 있는지 찾을 수 있습니다. 폴더는 하나씩 추가할 수 있어 게임 본체와 MOD가 다른 드라이브에 있어도 됩니다.",
     "searching": "검색 중…",
     "empty": "일치하는 이름이 없습니다",
     "name": "이름",

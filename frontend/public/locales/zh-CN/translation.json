@@ -1,5 +1,6 @@
 {
   "Common": {
+    "ok": "确定",
     "open_shortcut": "{{action}} (Ctrl+O)",
     "reveal": "在文件管理器中显示",
     "reload": "重新加载",
@@ -219,10 +220,15 @@
     "save_filter": "全部文件"
   },
   "SearchPage": {
-    "choose_root": "选择索引目录",
-    "no_root": "先选择要索引的目录",
-    "no_root_yet": "未选择目录",
+    "manage_roots": "管理索引目录",
+    "choose_root": "添加目录",
+    "roots_hint": "改动在点「更新索引」或下次自动更新后才生效",
+    "no_root": "先添加要索引的目录",
+    "no_root_yet": "还没有添加目录。可以分几次添加，散落在不同硬盘上的目录也行",
+    "remove_root": "从索引目录中移除",
     "deep": "深度索引",
+    "auto_update": "自动更新",
+    "auto_update_tip": "打开后每次进入搜索页都会自动增量更新一次索引：只重新解析变动过和新增的文件，通常一两秒内完成",
     "deep_tip": "解析 menuassets / materialassets / pmatassets，找出 .menu、.mate、.pmat 这些只存在于容器内部、catalog 不会列出的名字",
     "build": "建立索引",
     "update": "更新索引",
@@ -244,8 +250,7 @@
     "no_extension": "无扩展名",
     "count": "共 {{total}} 条",
     "count_truncated": "显示 {{shown}} / 共 {{total}} 条",
-    "intro": "选择游戏的资源目录并建立索引，之后就能按名字查出它在哪个 aba 里。",
-    "intro_hint": "索引只读取每个容器的元数据，22 GB 的资源实际读取量不到 200 MB。结果会缓存到磁盘，下次打开直接恢复，只有变动过的文件才重新解析。",
+    "intro": "添加游戏的资源目录并建立索引，之后就能按名字查出它在哪个 aba 里。目录可以分几次添加，游戏本体和 MOD 放在不同硬盘上也没关系。",
     "searching": "查询中…",
     "empty": "没有匹配的名字",
     "name": "名字",

@@ -238,7 +238,7 @@ func postScanReport(t *testing.T, service *SearchService, targets scanTargets, d
 	combined := time.Since(start)
 
 	start = time.Now()
-	index := buildIndex(strings.TrimSpace(os.Getenv("ABA_BENCH_ROOT")), deep, sources, warnings)
+	index := buildIndex([]string{strings.TrimSpace(os.Getenv("ABA_BENCH_ROOT"))}, deep, sources, warningTexts(warnings))
 	flattened := time.Since(start)
 
 	fmt.Printf("\n解析之后的单线程阶段 / single-threaded phases that follow the scans\n")

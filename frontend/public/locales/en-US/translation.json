@@ -1,5 +1,6 @@
 {
   "Common": {
+    "ok": "OK",
     "open_shortcut": "{{action}} (Ctrl+O)",
     "reveal": "Show in file manager",
     "reload": "Reload",
@@ -219,10 +220,15 @@
     "save_filter": "All files"
   },
   "SearchPage": {
-    "choose_root": "Choose index directory",
-    "no_root": "Choose a directory to index first",
-    "no_root_yet": "No directory chosen",
+    "manage_roots": "Manage index directories",
+    "choose_root": "Add directory",
+    "roots_hint": "Changes take effect after Update index or the next auto update",
+    "no_root": "Add a directory to index first",
+    "no_root_yet": "No directory added yet. You can add them one at a time, even when they sit on different drives",
+    "remove_root": "Remove from the index directories",
     "deep": "Deep index",
+    "auto_update": "Auto update",
+    "auto_update_tip": "Updates the index incrementally every time this page opens: only changed and new files are reparsed, which usually takes a second or two",
     "deep_tip": "Parses menuassets, materialassets and pmatassets to recover the .menu, .mate and .pmat names that exist only inside containers and are never listed by a catalog",
     "build": "Build index",
     "update": "Update index",
@@ -244,8 +250,7 @@
     "no_extension": "No extension",
     "count": "{{total}} results",
     "count_truncated": "Showing {{shown}} of {{total}}",
-    "intro": "Choose the game's resource directory and build an index, then look up any name to see which .aba holds it.",
-    "intro_hint": "Indexing reads only each container's metadata, so 22 GB of resources take under 200 MB of actual reads. The result is cached on disk and restored on the next launch, with only changed files reparsed.",
+    "intro": "Add the game's resource directories and build an index, then look up any name to see which .aba holds it. Directories can be added one at a time, so the game and its MODs may live on different drives.",
     "searching": "Searching…",
     "empty": "No matching name",
     "name": "Name",
